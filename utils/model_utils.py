@@ -22,4 +22,5 @@ def get_model_prediction_scores(model, apply_softmax, dataset, batch_size=128, n
             prediction_scores.append(output.cpu())
 
     prediction_scores = torch.cat(prediction_scores) if len(prediction_scores) > 0 else torch.empty(0)
+    print(prediction_scores)
     return prediction_scores
