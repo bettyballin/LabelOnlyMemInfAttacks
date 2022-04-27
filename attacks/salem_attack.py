@@ -145,5 +145,5 @@ class SalemAttack(PredictionScoreAttack):
                 predictions.append(attack_output.sigmoid())
         print("get attackmodel prediction scores")
         print(torch.cat(predictions, dim=0).squeeze().cpu().size())
-        print(torch.cat(predictions, dim=0).squeeze().cpu().topk().size())
+        print(torch.cat(predictions, dim=0).squeeze().cpu().topk(1).size())
         return torch.cat(predictions, dim=0).squeeze().cpu()
