@@ -37,6 +37,8 @@ class SalemAttack(PredictionScoreAttack):
         shadow_model.eval()
         predictions = []
         membership_labels = []
+        print("salem learn attack params")
+        x = 0
         if self.log_training:
             print('Compute attack model dataset')
         with torch.no_grad():
@@ -52,11 +54,23 @@ class SalemAttack(PredictionScoreAttack):
                     else:
                         predictions.append(output)
                     membership_labels.append(torch.full_like(y, i))
+                    if x < 2:
+                        print(prediction_scores)
+                        print(prediction_scores.size())
+                        print(prediction_scores.topk(1))
+                        print(y)
+                        print(i)
+                        print(membership_labels[-1].size())
+                        print(membership_labels[-1].topk(1))
+                        print(predictions[-1].size())
+                    x += 1
 
         # Compute top-k predictions
         predictions = torch.cat(predictions, dim=0)
         membership_labels = torch.cat(membership_labels, dim=0)
         top_k_predictions = torch.topk(predictions, k=self.k, dim=1, largest=True, sorted=True).values
+        print("line 72 !!!!!!!!!!!!")
+        print(top_k_predictions.size())
         attack_dataset = torch.utils.data.dataset.TensorDataset(top_k_predictions, membership_labels)
 
         # Train attack model
@@ -131,4 +145,7 @@ class SalemAttack(PredictionScoreAttack):
                     top_pred_scores = torch.topk(target_output, k=self.k, dim=1, largest=True, sorted=True).values
                     attack_output = self.attack_model(top_pred_scores)
                 predictions.append(attack_output.sigmoid())
+        print("get attackmodel prediction scores")
+        print(torch.cat(predictions, dim=0).squeeze().cpu().size())
+        print(torch.cat(predictions, dim=0).squeeze().cpu().topk().size())
         return torch.cat(predictions, dim=0).squeeze().cpu()
