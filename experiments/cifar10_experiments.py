@@ -36,7 +36,7 @@ parser.add_argument(
     help='The model architecture to use'
 )
 parser.add_argument(
-    '--epochs', default=100, type=int, help='The number of epochs the target and shadow model are trained for'
+    '--epochs', default=10, type=int, help='The number of epochs the target and shadow model are trained for'
 )
 parser.add_argument(
     '--train_set_size',
@@ -64,7 +64,7 @@ parser.add_argument(
 )
 parser.add_argument(
     '--salem_k',
-    default=3,
+    default=1,
     type=int,
     help='The number of top prediction scores used for the Salem membership inference attack'
 )

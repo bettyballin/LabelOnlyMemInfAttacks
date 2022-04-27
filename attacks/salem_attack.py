@@ -38,7 +38,6 @@ class SalemAttack(PredictionScoreAttack):
         predictions = []
         membership_labels = []
         print("salem learn attack params")
-        x = 0
         if self.log_training:
             print('Compute attack model dataset')
         with torch.no_grad():
@@ -54,16 +53,15 @@ class SalemAttack(PredictionScoreAttack):
                     else:
                         predictions.append(output)
                     membership_labels.append(torch.full_like(y, i))
-                    if x < 2:
-                        print(prediction_scores)
-                        print(prediction_scores.size())
-                        print(prediction_scores.topk(1))
-                        print(y)
-                        print(i)
-                        print(membership_labels[-1].size())
-                        print(membership_labels[-1].topk(1))
-                        print(predictions[-1].size())
-                    x += 1
+                    
+                    print(prediction_scores)
+                    print(prediction_scores.size())
+                    print(prediction_scores.topk(1))
+                    print(y)
+                    print(i)
+                    print(membership_labels[-1].size())
+                    print(membership_labels[-1].topk(1))
+                    print(predictions[-1].size())
 
         # Compute top-k predictions
         predictions = torch.cat(predictions, dim=0)
