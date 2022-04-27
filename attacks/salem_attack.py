@@ -38,6 +38,7 @@ class SalemAttack(PredictionScoreAttack):
         predictions = []
         membership_labels = []
         print("salem learn attack params")
+        b = False
         if self.log_training:
             print('Compute attack model dataset')
         with torch.no_grad():
@@ -53,15 +54,16 @@ class SalemAttack(PredictionScoreAttack):
                     else:
                         predictions.append(output)
                     membership_labels.append(torch.full_like(y, i))
-                    
-                    print(prediction_scores)
-                    print(prediction_scores.size())
-                    print(prediction_scores.topk(1))
-                    print(y)
-                    print(i)
-                    print(membership_labels[-1].size())
-                    print(membership_labels[-1].topk(1))
-                    print(predictions[-1].size())
+                    if not b:
+                        print(prediction_scores)
+                        print(prediction_scores.size())
+                        print(prediction_scores.topk(1))
+                        print(y)
+                        print(i)
+                        print(membership_labels[-1].size())
+                        print(membership_labels[-1].topk(1))
+                        print(predictions[-1].size())
+                        b = True
 
         # Compute top-k predictions
         predictions = torch.cat(predictions, dim=0)
@@ -143,7 +145,7 @@ class SalemAttack(PredictionScoreAttack):
                     top_pred_scores = torch.topk(target_output, k=self.k, dim=1, largest=True, sorted=True).values
                     attack_output = self.attack_model(top_pred_scores)
                 predictions.append(attack_output.sigmoid())
-        print("get attackmodel prediction scores")
+        print("salem get attackmodel prediction scores")
         print(torch.cat(predictions, dim=0).squeeze().cpu().size())
         print(torch.cat(predictions, dim=0).squeeze().cpu().topk(1).size())
         return torch.cat(predictions, dim=0).squeeze().cpu()

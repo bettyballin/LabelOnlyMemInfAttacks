@@ -29,7 +29,8 @@ class ThresholdAttack(PredictionScoreAttack):
             batch_size=512,
             num_workers=8
         ).max(dim=1)[0].tolist()
-
+        print("threshold attack")
+        print(pred_scores[-1])
         pred_scores = pred_scores_shadow_non_member + pred_scores_shadow_member
         self.shadow_fpr, self.shadow_tpr, self.thresholds, self.auroc = get_roc(labels, pred_scores)
         threshold_idx = (self.shadow_tpr - self.shadow_fpr).argmax()
