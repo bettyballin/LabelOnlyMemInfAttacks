@@ -11,6 +11,7 @@ import numpy as np
 import csv
 import argparse
 from rtpt import RTPT
+import wandb
 
 from attacks import SalemAttack, EntropyAttack, ThresholdAttack
 from datasets import StanfordDogs, FakeCIFAR10, AFHQ
@@ -19,6 +20,7 @@ from utils.dataset_utils import get_subsampled_dataset, get_train_val_split, get
 from utils.validation import evaluate, expected_calibration_error, overconfidence_error
 from experiment_utils import train, attack_model, write_results_to_csv, get_llla_calibrated_models, \
     get_temp_calibrated_models
+from utils.wandb_utils import CustomWandbLogger
 
 from models.cifar10_models import ResNet18, SalemCNN_Relu, EfficientNetB0
 
@@ -84,6 +86,8 @@ parser.add_argument(
 )
 parser.add_argument('--temp_value', default=None, type=float, help='Set a temperature value by hand')
 
+parser.add_argument('--wandb', action='store_true')
+
 args = parser.parse_args()
 if args.label_smoothing:
     print(f'Training model using label smoothing factor: {args.label_smoothing_factor}')
@@ -98,6 +102,17 @@ elif args.temp_scaling and args.temp_value is not None:
 elif not args.temp_scaling and args.temp_value is not None:
     raise Exception('To use temperature scaling as calibration method use the flag `--temp_scaling`')
 
+if args.wandb:
+    wandb.init(
+      # Set the project where this run will be logged
+      project="LblOnly_MemInf", 
+      # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
+      #name=f"experiment_{run}", 
+      # Track hyperparameters and run metadata
+      config=args
+      )
+    wandb.log_hyperparams(args)
+        
 # --------------------------------------
 # GLOBAL VARIABLES
 # --------------------------------------
@@ -136,6 +151,8 @@ LABEL_SMOOTHING_FACTOR = args.label_smoothing_factor
 USE_LLLA = args.llla
 USE_TEMP = args.temp_scaling
 TEMP_VALUE = args.temp_value
+
+WANDB = args.wandb
 
 # set the seed and set pytorch to behave deterministically
 torch.manual_seed(SEED)
@@ -254,6 +271,9 @@ if __name__ == '__main__':
     target_model = get_model_architecture(MODEL_ARCH)
     shadow_model = get_model_architecture(MODEL_ARCH)
 
+    if WANDB:
+        wandb.watch(shadow_model, log="all", log_freq=100)
+
     # train or load the model
     if TRAIN_MODEL:
         rtpt = RTPT(name_initials='', experiment_name=f'{MODEL_ARCH.upper()}', max_iterations=EPOCHS * 2)
@@ -280,7 +300,8 @@ if __name__ == '__main__':
             filename=SHADOW_MODEL_FILE,
             weight_decay=WEIGHT_DECAY,
             label_smoothing_factor=LABEL_SMOOTHING_FACTOR if LABEL_SMOOTHING else None,
-            rtpt=rtpt
+            rtpt=rtpt,
+            wandb=WANDB
         )
     else:
         target_model.load_state_dict(torch.load(TARGET_MODEL_FILE))
@@ -401,6 +422,10 @@ if __name__ == '__main__':
         results = attack_model(target_model, attacks, member_target, non_member_target)
         write_results_to_csv(csv_writer, results, row_label='Original')
 
+        if args.wandb:
+            wandb.log(results)
+            wandb.finish()
+            
         print('\n')
         print('Attack Model using Permuted Non-Members:')
         results = attack_model(target_model, attacks, member_target, permuted_non_member_target)
