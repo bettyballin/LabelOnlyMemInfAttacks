@@ -15,7 +15,7 @@ from utils.training import train_model, LabelSmoothingCrossEntropy
 from utils.dataset_utils import get_subsampled_dataset
 from attacks import AttackResult, PredictionScoreAttack
 from calibration import LLLA, TemperatureScaling
-
+import wandb
 
 def train(
     model: nn.Module,
@@ -27,6 +27,7 @@ def train(
     filename: str,
     weight_decay: float,
     label_smoothing_factor: Optional[float],
+    wandb: Optional[bool],
     rtpt: RTPT = None
 ):
     """
@@ -50,7 +51,8 @@ def train(
         val_dataset=test_set,
         filename=filename,
         num_workers=16,
-        rtpt=rtpt
+        rtpt=rtpt,
+        wandb=wandb
     )
 
 
@@ -74,6 +76,12 @@ def attack_model(model: nn.Module, attack_list: List[PredictionScoreAttack], mem
     attack_result_list: List[AttackResult] = []
     for current_attack in attack_list:
         attack_result = current_attack.evaluate(model, member, non_member)
+        try:
+            torch.onnx.export(current_attack.get_attack_model(), member, "model.onnx")
+            wandb.save("model.onnx")
+        except Exception as e:
+            print(e)
+            pass  
         attack_result_list.append(attack_result)
         print_attack_results(current_attack.display_name, attack_result)
     return attack_result_list

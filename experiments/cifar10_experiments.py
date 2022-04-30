@@ -20,7 +20,6 @@ from utils.dataset_utils import get_subsampled_dataset, get_train_val_split, get
 from utils.validation import evaluate, expected_calibration_error, overconfidence_error
 from experiment_utils import train, attack_model, write_results_to_csv, get_llla_calibrated_models, \
     get_temp_calibrated_models
-from utils.wandb_utils import CustomWandbLogger
 
 from models.cifar10_models import ResNet18, SalemCNN_Relu, EfficientNetB0
 
@@ -111,7 +110,6 @@ if args.wandb:
       # Track hyperparameters and run metadata
       config=args
       )
-    wandb.log_hyperparams(args)
         
 # --------------------------------------
 # GLOBAL VARIABLES
@@ -271,9 +269,6 @@ if __name__ == '__main__':
     target_model = get_model_architecture(MODEL_ARCH)
     shadow_model = get_model_architecture(MODEL_ARCH)
 
-    if WANDB:
-        wandb.watch(shadow_model, log="all", log_freq=100)
-
     # train or load the model
     if TRAIN_MODEL:
         rtpt = RTPT(name_initials='', experiment_name=f'{MODEL_ARCH.upper()}', max_iterations=EPOCHS * 2)
@@ -300,8 +295,7 @@ if __name__ == '__main__':
             filename=SHADOW_MODEL_FILE,
             weight_decay=WEIGHT_DECAY,
             label_smoothing_factor=LABEL_SMOOTHING_FACTOR if LABEL_SMOOTHING else None,
-            rtpt=rtpt,
-            wandb=WANDB
+            rtpt=rtpt
         )
     else:
         target_model.load_state_dict(torch.load(TARGET_MODEL_FILE))
@@ -423,7 +417,8 @@ if __name__ == '__main__':
         write_results_to_csv(csv_writer, results, row_label='Original')
 
         if args.wandb:
-            wandb.log(results)
+            for result in results:
+                wandb.log({"precision": result.precision, "recall": result.recall, "auroc": result.auroc, "aupr": result.aupr, "fpr_at_tpr95": result.fpr_at_tpr95, "fpr": result.fpr})
             wandb.finish()
             
         print('\n')
