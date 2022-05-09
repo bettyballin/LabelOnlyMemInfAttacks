@@ -5,12 +5,12 @@ import torch
 
 from attacks.hopskipjump import HopSkipJump
 from attacks.attack import MembershipInferenceAttack
-from datasets import AugmentationDataset
-#from metrics.accuracy import BinaryClassifierAccuracy
-#from models.membership_predictor import MembershipPredictor
+from datasets.augmentation_dataset import AugmentationDataset
+from metrics.accuracy import BinaryClassifierAccuracy
+from models.membership_predictor import MembershipPredictor
 #from utils.configs import TrainConfigHelper
 #from utils.wandb_utils import get_shadow_model
-#from utils.training_utils import EarlyStopper
+from utils.training import EarlyStopper
 
 from rtpt import RTPT
 from torch.utils.data import dataloader

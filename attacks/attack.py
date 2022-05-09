@@ -71,12 +71,6 @@ class PredictionScoreAttack:
         raise NotImplementedError('This function has to be implemented in a subclass')
 
     @abstractmethod
-    def get_attack_model(
-        self
-    ):
-        raise NotImplementedError('This function has to be implemented in a subclass')
-
-    @abstractmethod
     def predict_membership(self, target_model: nn.Module, dataset: Dataset) -> np.ndarray:
         """
         Predicts whether the samples in the given dataset are a member of the given model.
