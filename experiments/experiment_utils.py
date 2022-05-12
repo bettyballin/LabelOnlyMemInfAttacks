@@ -81,7 +81,6 @@ def attack_model(model: nn.Module, attack_list: List[PredictionScoreAttack], mem
             torch.onnx.export(current_attack.get_attack_model(), member, "model.onnx")
             wandb.save("model.onnx")
         except Exception as e:
-            print(e)
             pass  
         attack_result_list.append(attack_result)
         print_attack_results(current_attack.display_name, attack_result)

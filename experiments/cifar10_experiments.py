@@ -283,7 +283,8 @@ if __name__ == '__main__':
             filename=TARGET_MODEL_FILE,
             weight_decay=WEIGHT_DECAY,
             label_smoothing_factor=LABEL_SMOOTHING_FACTOR if LABEL_SMOOTHING else None,
-            rtpt=rtpt
+            rtpt=rtpt,
+            wandb=False
         )
         train(
             model=shadow_model,
@@ -295,7 +296,8 @@ if __name__ == '__main__':
             filename=SHADOW_MODEL_FILE,
             weight_decay=WEIGHT_DECAY,
             label_smoothing_factor=LABEL_SMOOTHING_FACTOR if LABEL_SMOOTHING else None,
-            rtpt=rtpt
+            rtpt=rtpt,
+            wandb=False
         )
     else:
         target_model.load_state_dict(torch.load(TARGET_MODEL_FILE))
