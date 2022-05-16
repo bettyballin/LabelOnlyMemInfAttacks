@@ -308,16 +308,16 @@ class AugmentationAttack(PredictionScoreAttack):
     def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
         self.attack_model.eval()
 
-        prediction_vectors = self._get_prediction_vectors(target_model, dataset)
-        dataloader = DataLoader(TensorDataset(prediction_vectors), batch_size=self.batch_size)
+        prediction_vectors = self._get_prediction_vectors(target_model, dataset) # [2500,14]
+        dataloader = DataLoader(TensorDataset(prediction_vectors), batch_size=self.batch_size) # batch size 128
 
         with torch.no_grad():
-            membership_preds = []
-            for vec in dataloader:
-                output = self.attack_model(vec[0].float())
-                membership_preds.append(output.sigmoid())
+            membership_preds = [] 
+            for vec in dataloader:  # [128, 14] x 20
+                output = self.attack_model(vec[0].float()) # [1, 128]
+                membership_preds.append(output.sigmoid()) # [128, 1]
 
-        predictions = torch.cat(membership_preds, dim=0).squeeze()
+        predictions = torch.cat(membership_preds, dim=0).squeeze() # [2500]
 
         return predictions.cpu()
 

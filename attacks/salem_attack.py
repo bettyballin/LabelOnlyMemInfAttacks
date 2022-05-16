@@ -31,9 +31,6 @@ class SalemAttack(PredictionScoreAttack):
         self.lr = lr
         self.log_training = log_training
 
-    def get_attack_model(self):
-        return self.attack_model
-
     def learn_attack_parameters(self, shadow_model: nn.Module, member_dataset: Dataset, non_member_dataset: Dataset):
         # Gather predictions by shadow model
         shadow_model.to(self.device)
