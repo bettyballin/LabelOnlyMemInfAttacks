@@ -222,21 +222,32 @@ class AugmentationAttack(PredictionScoreAttack):
             membership_label_vector = []
             for augmented_images, class_label, no_member in tqdm(data_loader, desc="Augmenting images", leave=False, disable=not self.log_training):
                 # move the images to the same device as the membership predictor
+                # tensor size [224, 3, 32, 32]
                 image_tensor = augmented_images.to(self.device).squeeze().view(
                     -1, augmented_images.size()[-3], augmented_images.size()[-2], augmented_images.size()[-1]
                 )
+                # tensor size [16,1] (values 0-9)
                 class_label = class_label.to(self.device).unsqueeze(1)
+                # tensor size [16,1] (values 0-1)
                 no_member = no_member.to(self.device).unsqueeze(1)
+                # tensor size [16, 14, 10]
                 logits = shadow_model(image_tensor
                                       ).view(-1, self.num_augmented_images, shadow_model.linear.out_features)
+                # tensor size [16, 14, 10]
                 output = logits.softmax(2)
+                # tensor size [16, 14]
                 predictions = torch.argmax(output, dim=2)
+                # tensor size [16, 14] (values False,True)
                 correct_class_predictions = (predictions == class_label)
 
+                # list with tensor size [16, 14]
                 prediction_vectors.append(correct_class_predictions)
+                # list with tensor size [16, 1]
                 membership_label_vector.append(no_member)
 
+        # tensor size [5000, 14] (values True, False)
         prediction_vectors = torch.cat(prediction_vectors)
+        # tensor size [5000, 1] (values 0, 1)
         membership_label_vector = torch.cat(membership_label_vector)
 
         membership_predictor_dataloader = DataLoader(
@@ -259,8 +270,10 @@ class AugmentationAttack(PredictionScoreAttack):
             running_loss = 0.0
             accuracy.reset()
             for idx, (batch, member_labels) in enumerate(membership_predictor_dataloader):
+                # batch: [128, 14] (False, True), member_labels: [128, 1] (0,1)
                 batch, member_labels = batch.to(self.device), member_labels.to(self.device)
                 optimizer.zero_grad()
+                # [128, 1] (-0.xxxx)
                 outputs = self.attack_model(batch.float())
 
                 loss = criterion(outputs, member_labels.float())
