@@ -13,7 +13,7 @@ import argparse
 from rtpt import RTPT
 import wandb
 
-from attacks import SalemAttack, EntropyAttack, ThresholdAttack, AugmentationAttack, RandomNoiseAttack
+from attacks import SalemAttack, EntropyAttack, ThresholdAttack, AugmentationAttack, RandomNoiseAttack, GapAttack, DecisionBoundaryAttack
 from datasets import StanfordDogs, FakeCIFAR10, AFHQ
 from utils.dataset_utils import get_subsampled_dataset, get_train_val_split, get_normalization, \
     create_permuted_dataset, create_scaled_dataset, create_un_normalized_dataset
@@ -382,7 +382,9 @@ if __name__ == '__main__':
         SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
         EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
+        #RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
+        GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+        DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
     # learn the attack parameters for each attack
     for attack in attacks:

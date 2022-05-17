@@ -46,7 +46,6 @@ class RandomNoiseAttack(PredictionScoreAttack):
         self.apply_softmax = apply_softmax
         self.batch_size = batch_size
         self.log_training = log_training
-        self.attack_model = nn.Sequential(nn.Linear(1, 64), nn.ReLU(), nn.Linear(64, 1))
         self.tau = tau
         self.sigma = min_sigma
         self.min_sigma = min_sigma
@@ -130,7 +129,6 @@ class RandomNoiseAttack(PredictionScoreAttack):
         if self.log_training:
             print(f'Parameters estimated: sigma={best_sigma:.4f}, tau={best_tau:.4f}. Achieved accuracy={best_acc:.4f}')
 
-
     def estimate_distance(self, x, y, shadow_model, sigma):
         """
         Distance estimated by computing the accuracy of the model
@@ -161,18 +159,17 @@ class RandomNoiseAttack(PredictionScoreAttack):
         Returns True if membership is predicted, False else.
         """
         predictions = self.get_attack_model_prediction_scores(target_model, dataset)
-
         return predictions.numpy()
 
     def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
         target_model.eval()
-        #self.attack_model.eval()
         dataloader = DataLoader(dataset, shuffle=True, batch_size=self.batch_size, num_workers=8)
         predictions = np.zeros(len(dataset), dtype=bool)
         with torch.no_grad():
             for i, (x, y) in enumerate(dataloader):
                 x, y = x.to(self.device), y.to(self.device)
-                y_pred = target_model.predict(x)
+                output = target_model(x).softmax(dim=1)
+                y_pred = torch.argmax(output, dim=1)
                 dist = self.estimate_distance(x, y, target_model, self.sigma)
 
                 # Set distance to 0 for false predictions.
@@ -180,15 +177,5 @@ class RandomNoiseAttack(PredictionScoreAttack):
                 dist[mask == False] = 0
 
                 predictions[i * len(x):i * len(x) + len(x)] = dist > self.tau
-        '''
-        dataloader = DataLoader(TensorDataset(predictions), batch_size=self.batch_size)
 
-        with torch.no_grad():
-            membership_preds = [] 
-            for vec in dataloader:  # [128, 14] x 20
-                output = self.attack_model(vec[0].float()) # [1, 128]
-                membership_preds.append(output.sigmoid()) # [128, 1]
-
-        predictions = torch.cat(membership_preds, dim=0).squeeze() # [2500]
-        '''
         return predictions.cpu()

@@ -114,7 +114,8 @@ class HopSkipJump():
         clip_min, clip_max = np.min(x), np.max(x)
 
         # Prediction from the original images
-        preds = self.estimator.predict(x, batch_size=self.batch_size, numpy=True)
+        #preds = self.estimator.predict(x, batch_size=self.batch_size, numpy=True)
+        preds = self.estimator(x)
 
         # Prediction from the initial adversarial examples if not None
         x_adv_init = kwargs.get("x_adv_init")
@@ -126,7 +127,7 @@ class HopSkipJump():
                     x_adv_init[i] = x_adv_init[i] * mask[i] + x[i] * (1 - mask[i])
 
             # Do prediction on the init
-            init_preds = self.estimator.predict(x_adv_init, batch_size=self.batch_size, numpy=True)
+            init_preds = self.estimator(x_adv_init)
 
         else:
             init_preds = [None] * len(x)
@@ -281,7 +282,7 @@ class HopSkipJump():
                 if mask is not None:
                     random_img = random_img * mask + x * (1 - mask)
 
-                random_class = self.estimator.predict(np.array([random_img]), batch_size=self.batch_size, numpy=True)
+                random_class = self.estimator(np.array([random_img]))
 
                 if random_class != y_p:
                     # Binary search to reduce the l2 distance to the original image
@@ -560,7 +561,7 @@ class HopSkipJump():
         :return: An array of 0/1.
         """
         samples = np.clip(samples, clip_min, clip_max)
-        preds = self.estimator.predict(samples, batch_size=self.batch_size, numpy=True)
+        preds = self.estimator(samples)
 
         if self.targeted:
             result = preds == target

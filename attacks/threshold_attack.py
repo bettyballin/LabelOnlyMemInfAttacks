@@ -9,7 +9,7 @@ from utils.roc import get_roc
 
 class ThresholdAttack(PredictionScoreAttack):
     def __init__(self, apply_softmax: bool):
-        super().__init__('Threshold Attack')
+        super().__init__('ThresholdAttack')
         self.apply_softmax = apply_softmax
         self.attack_treshold = 0.0
 
