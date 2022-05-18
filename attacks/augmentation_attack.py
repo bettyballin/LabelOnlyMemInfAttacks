@@ -67,7 +67,7 @@ class AugmentationDataset(Dataset):
             raise IndexError("Given index is out of range")
 
         return self.augment_images(data_point[0].unsqueeze(0), self.rotation_vector, self.translation_vector).squeeze(
-            1), data_point[1], data_point[2]
+            1), data_point[1], data_point[2]    # label (0-9), membership status (0-1)
 
     @staticmethod
     def rotate_image(image: torch.Tensor, rotation_vector: torch.Tensor):

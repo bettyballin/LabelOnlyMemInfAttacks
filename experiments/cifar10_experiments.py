@@ -382,9 +382,9 @@ if __name__ == '__main__':
         SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
         EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        #RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
         GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
+        DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+        RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
     # learn the attack parameters for each attack
     for attack in attacks:

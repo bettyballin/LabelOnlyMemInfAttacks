@@ -26,9 +26,9 @@ class GapAttack(PredictionScoreAttack):
         self.apply_softmax = apply_softmax
         self.batch_size = batch_size
         self.log_training = log_training
-        self.attack_model = nn.Sequential(nn.Linear(1, 64), nn.ReLU(), nn.Linear(64, 1))
         
     def learn_attack_parameters(self, shadow_model: nn.Module, member_dataset: Dataset, non_member_dataset: Dataset):
+        # nothing to do, as this is a baseline attack which predicts any misclassified point as non-member
         pass
     
     def predict_membership(self, target_model: nn.Module, dataset: Dataset) -> np.ndarray:
@@ -46,6 +46,6 @@ class GapAttack(PredictionScoreAttack):
         for X, y in dataloader:
             X, y = X.to(self.device), y.to(self.device)
             with torch.no_grad():
-                y_pred = torch.argmax(shadow_model.forward(X), dim=1)
+                y_pred = torch.argmax(target_model.forward(X), dim=1)
                 predictions.append(y_pred == y)
         return torch.cat(predictions).cpu().tolist()

@@ -168,7 +168,9 @@ class RandomNoiseAttack(PredictionScoreAttack):
         with torch.no_grad():
             for i, (x, y) in enumerate(dataloader):
                 x, y = x.to(self.device), y.to(self.device)
-                output = target_model(x).softmax(dim=1)
+                output = target_model(x)
+                if self.apply_softmax:
+                    output = output.softmax(dim=1)
                 y_pred = torch.argmax(output, dim=1)
                 dist = self.estimate_distance(x, y, target_model, self.sigma)
 

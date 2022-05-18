@@ -18,7 +18,7 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         apply_softmax: bool,
         batch_size: int = 128,
         log_training: bool = False,
-        input_shape: Tuple[int, int, int] = (3, 224, 224),
+        input_shape: Tuple[int, int, int] = (3, 32, 32),
         tau: float = 0.5,
         max_iter: int = 10,
         max_eval: int = 500,
@@ -41,6 +41,7 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         self.max_eval = max_eval
         self.init_eval = init_eval
         self.init_size = init_size
+        self.apply_softmax = apply_softmax
 
     def learn_attack_parameters(
         self, shadow_model: nn.Module, member_dataset: torch.utils.data.Dataset, non_member_dataset: Dataset, *kwargs
@@ -54,24 +55,35 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
             * *init_eval*: Initial number of evaluations for estimating gradient.
             * *init_size*: Maximum number of trials for initial generation of adversarial examples.
         """
+        shadow_model.to(self.device)
+        shadow_model.eval()
+        
         # get the membership and non-membership data as numpy arrays
-        x_train = next(iter(torch.utils.data.DataLoader(member_dataset, batch_size=len(member_dataset))))[0].numpy()
-        y_train = next(iter(torch.utils.data.DataLoader(member_dataset, batch_size=len(member_dataset))))[1].numpy()
-        x_test = next(iter(torch.utils.data.DataLoader(non_member_dataset,
-                                                       batch_size=len(non_member_dataset))))[0].numpy()
+        x_train = next(iter(torch.utils.data.DataLoader(member_dataset, batch_size=len(member_dataset))))[0].numpy() # [2500, 3, 32, 32]
+        y_train = next(iter(torch.utils.data.DataLoader(member_dataset, batch_size=len(member_dataset))))[1].numpy() # [2500]
+        x_test = next(iter(torch.utils.data.DataLoader(non_member_dataset,      
+                                                       batch_size=len(non_member_dataset))))[0].numpy()              # [2500, 3, 32, 32]
         y_test = next(iter(torch.utils.data.DataLoader(non_member_dataset,
-                                                       batch_size=len(non_member_dataset))))[1].numpy()
+                                                       batch_size=len(non_member_dataset))))[1].numpy()              # [2500]
 
-        hsj = HopSkipJump(classifier=shadow_model, input_shape=self.input_shape)
-
+        hsj = HopSkipJump(classifier=shadow_model, apply_softmax=self.apply_softmax, input_shape=self.input_shape, device=self.device)
         x_train_adv = hsj.generate(x=x_train, y=y_train)
         x_test_adv = hsj.generate(x=x_test, y=y_test)
 
         distance_train = np.linalg.norm((x_train_adv - x_train).reshape((x_train.shape[0], -1)), ord=2, axis=1)
         distance_test = np.linalg.norm((x_test_adv - x_test).reshape((x_test.shape[0], -1)), ord=2, axis=1)
+        
+        input_train = torch.from_numpy(x_train).to(self.device)
+        input_test = torch.from_numpy(x_test).to(self.device)
+        y_train_pred = shadow_model(input_train)
+        y_test_pred = shadow_model(input_test)
 
-        y_train_pred = shadow_model.predict(x_train, numpy=True)
-        y_test_pred = shadow_model.predict(x_test, numpy=True)
+        #if self.apply_softmax:
+        #    y_train_pred = y_train_pred.softmax(dim=1)
+        #    y_test_pred = y_test_pred.softmax(dim=1)
+
+        #y_train_pred = torch.argmax(y_train_pred, dim=1)
+        #y_test_pred = torch.argmax(y_test_pred, dim=1)
 
         distance_train[y_train_pred != y_train] = 0
         distance_test[y_test_pred != y_test] = 0
@@ -106,12 +118,12 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         hsj = HopSkipJump(classifier=target_model, input_shape=self.input_shape)
         x_adv = hsj.generate(x=x, y=y)
         distance = np.linalg.norm((x_adv - x).reshape((x.shape[0], -1)), ord=2, axis=1)
-        output = target_model(x).softmax(dim=1)
+        output = target_model(x)
+        if self.apply_softmax:
+            output = output.softmax(dim=1)
         y_pred = torch.argmax(output, dim=1)
         distance[y_pred != y] = 0
-
         is_member = np.where(distance > self.tau, 1, 0)
-
         return torch.tensor(is_member)   
 
     def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
