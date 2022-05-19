@@ -150,7 +150,7 @@ class HopSkipJump():
         x_adv = x.astype(float) # [2500, 3, 32, 32]
 
         # Generate the adversarial samples
-        for ind in tqdm(range(len(x_adv)), desc='perturbating samples'):
+        for ind in tqdm(range(len(x_adv)), desc='HopSkipJump: perturbating samples'):
             val = x_adv[ind]
             self.curr_iter = start
 

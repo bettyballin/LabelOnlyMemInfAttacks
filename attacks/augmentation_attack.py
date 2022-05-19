@@ -92,8 +92,19 @@ class AugmentationDataset(Dataset):
     def shift_image(image: torch.Tensor, displacement_vector: torch.Tensor):
         image_vec = image.repeat(displacement_vector.shape[0], 1, 1, 1)
         transl_matrices = []
-        for displacement in displacement_vector:
-            transl_matrices.append(torch.tensor([[1, 0, displacement[-2]], [0, 1, displacement[-1]]]))
+        for displacement in displacement_vector: 
+            # divide the x and y translation through height/2 and width/2 of the image
+            # this is because grid_sample expects values in the range of [-1,1] (the coordinate [0,0] is the center of
+            # the image while [-1, -1] is the upper left pixel)
+            transl_matrices.append(
+                torch.tensor(
+                    [
+                        [1, 0, displacement[-2]/(image.shape[-2]/2)],
+                        [0, 1, displacement[-1]/(image.shape[-1]/2)]
+                    ]
+                )
+            )
+            #transl_matrices.append(torch.tensor([[1, 0, displacement[-2]], [0, 1, displacement[-1]]]))
         transl_matrices = torch.stack(transl_matrices).float()
 
         grid = F.affine_grid(transl_matrices, image_vec.size(), align_corners=True)
