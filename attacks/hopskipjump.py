@@ -115,16 +115,17 @@ class HopSkipJump():
         else:
             start = 0
 
-        # Get clip_min and clip_max from the classifier or infer them from data
-        clip_min, clip_max = np.min(x), np.max(x)
-
         # Prediction from the original images
-        #preds = self.estimator.predict(x, batch_size=self.batch_size, numpy=True)
-        input = torch.from_numpy(x).to(self.device) # [2500, 3, 32, 32]
-        output = self.estimator(input)               # [2500, 10]
+        output = self.estimator(x)               # [2500, 10]
         if self.apply_softmax:
             output = output.softmax(dim=1)
         preds = torch.argmax(output, dim=1) # [2500]
+
+        # convert tensor to numpy array
+        x = x.cpu().numpy()
+
+        # Get clip_min and clip_max from the classifier or infer them from data
+        clip_min, clip_max = np.min(x), np.max(x)
 
         # Prediction from the initial adversarial examples if not None
         x_adv_init = kwargs.get("x_adv_init")
