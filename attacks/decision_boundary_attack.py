@@ -104,6 +104,20 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         self.tau = distance_threshold_tau
 
     def predict_membership(self, target_model: nn.Module, dataset: Dataset):
+         return self.get_attack_model_prediction_scores(target_model, dataset) == 1
+
+    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
+        """
+        Infer membership of input `x` in estimator's training data.
+        :Keyword Arguments for HopSkipJump:
+            * *norm*: Order of the norm. Possible values: "inf", np.inf or 2.
+            * *max_iter*: Maximum number of iterations.
+            * *max_eval*: Maximum number of evaluations for estimating gradient.
+            * *init_eval*: Initial number of evaluations for estimating gradient.
+            * *init_size*: Maximum number of trials for initial generation of adversarial examples.
+            * *verbose*: Show progress bars.
+        :return: An array holding the inferred membership status, 1 indicates a member and 0 indicates non-member.
+        """
         hsj = HopSkipJump(classifier=target_model, apply_softmax=self.apply_softmax, input_shape=self.input_shape, device=self.device)
         dist = []
         with torch.no_grad():
@@ -120,18 +134,4 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 distance[y_pred != y] = 0
                 dist.append(np.where(distance > self.tau, 1, 0))
         is_member = np.array(dist).reshape(-1)
-        return torch.from_numpy(is_member)    
-
-    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
-        """
-        Infer membership of input `x` in estimator's training data.
-        :Keyword Arguments for HopSkipJump:
-            * *norm*: Order of the norm. Possible values: "inf", np.inf or 2.
-            * *max_iter*: Maximum number of iterations.
-            * *max_eval*: Maximum number of evaluations for estimating gradient.
-            * *init_eval*: Initial number of evaluations for estimating gradient.
-            * *init_size*: Maximum number of trials for initial generation of adversarial examples.
-            * *verbose*: Show progress bars.
-        :return: An array holding the inferred membership status, 1 indicates a member and 0 indicates non-member.
-        """
-        return self.predict_membership(self, target_model, dataset)
+        return torch.from_numpy(is_member)   

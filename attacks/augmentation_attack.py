@@ -244,7 +244,6 @@ class AugmentationAttack(PredictionScoreAttack):
                 # tensor size [16, 14, 10]
                 logits = shadow_model(image_tensor
                                       ).view(-1, self.num_augmented_images, shadow_model.linear.out_features)
-                # tensor size [16, 14, 10]
                 output = logits.softmax(2)
                 # tensor size [16, 14]
                 predictions = torch.argmax(output, dim=2)
@@ -256,7 +255,7 @@ class AugmentationAttack(PredictionScoreAttack):
                 # list with tensor size [16, 1]
                 membership_label_vector.append(no_member)
 
-        # tensor size [5000, 14] (values True, False)
+        # tensor size [5000, 14] (values True, False): is class correctly predicted
         prediction_vectors = torch.cat(prediction_vectors)
         # tensor size [5000, 1] (values 0, 1)
         membership_label_vector = torch.cat(membership_label_vector)
