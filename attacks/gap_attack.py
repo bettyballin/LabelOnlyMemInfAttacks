@@ -36,10 +36,6 @@ class GapAttack(PredictionScoreAttack):
         Predicts for samples X if they were part of the training set of the target model.
         Returns True if membership is predicted, False else.
         """
-        predictions = self.get_attack_model_prediction_scores(target_model, dataset)
-        return predictions.numpy()
-
-    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
         dataloader = DataLoader(dataset, batch_size=self.batch_size, num_workers=8)
         predictions = []
         target_model.eval()
@@ -48,4 +44,8 @@ class GapAttack(PredictionScoreAttack):
             with torch.no_grad():
                 y_pred = torch.argmax(target_model.forward(X), dim=1)
                 predictions.append(y_pred == y)
-        return torch.cat(predictions).cpu().tolist()
+        return np.array(torch.cat(predictions).cpu().tolist())
+
+    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
+        predictions = self.predict_membership(target_model, dataset)
+        return torch.from_numpy(np.array(predictions)*1)

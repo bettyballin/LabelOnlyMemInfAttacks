@@ -159,7 +159,7 @@ class RandomNoiseAttack(PredictionScoreAttack):
         Returns True if membership is predicted, False else.
         """
         predictions = self.get_attack_model_prediction_scores(target_model, dataset)
-        return predictions.numpy()
+        return predictions.numpy() == 1
 
     def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
         target_model.eval()
@@ -180,4 +180,4 @@ class RandomNoiseAttack(PredictionScoreAttack):
 
                 predictions[i * len(x):i * len(x) + len(x)] = dist > self.tau
 
-        return predictions.cpu()
+        return torch.from_numpy(predictions*1)
