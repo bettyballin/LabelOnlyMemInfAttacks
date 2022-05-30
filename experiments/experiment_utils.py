@@ -1,5 +1,7 @@
 import sys
 import os
+from tokenize import String
+from xmlrpc.client import Boolean
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 
@@ -9,6 +11,7 @@ import torch.nn as nn
 from torch.utils.data import dataset
 
 from rtpt import RTPT
+import wandb
 from typing import Optional, List
 
 from utils.training import train_model, LabelSmoothingCrossEntropy
@@ -27,7 +30,6 @@ def train(
     filename: str,
     weight_decay: float,
     label_smoothing_factor: Optional[float],
-    wandb: Optional[bool],
     rtpt: RTPT = None
 ):
     """
@@ -51,12 +53,11 @@ def train(
         val_dataset=test_set,
         filename=filename,
         num_workers=16,
-        rtpt=rtpt,
-        wandb=wandb
+        rtpt=rtpt
     )
 
 
-def print_attack_results(attack_name: str, attack_results: AttackResult):
+def print_attack_results(attack_name: str, attack_results: AttackResult, dataset: str, arg_wandb: Boolean):
     """
     Takes the attack name and the attack result object and prints the results to the console.
     """
@@ -68,9 +69,11 @@ def print_attack_results(attack_name: str, attack_results: AttackResult):
         f'\t TP MMPS: {attack_results.tp_mmps:.4f} \t FP MMPS: {attack_results.fp_mmps:.4f}'
         f'\t FN MMPS: {attack_results.fn_mmps:.4f} \t TN MMPS: {attack_results.tn_mmps:.4f}'
     )
+    if arg_wandb:
+        wandb.log({"precision_"+attack_name+"_"+dataset : attack_results.precision, "recall_"+attack_name+"_"+dataset : attack_results.recall, "auroc_"+attack_name+"_"+dataset : attack_results.auroc, "aupr_"+attack_name+"_"+dataset : attack_results.aupr, "fpr_at_tpr95_"+attack_name+"_"+dataset: attack_results.fpr_at_tpr95, "tpr_"+attack_name+"_"+dataset: attack_results.tpr, "fpr_"+attack_name+"_"+dataset : attack_results.fpr, "tnr_"+attack_name+"_"+dataset : attack_results.tnr, "fnr_"+attack_name+"_"+dataset : attack_results.fnr, "tp_mmps_"+attack_name+"_"+dataset : attack_results.tp_mmps, "fp_mmps_"+attack_name+"_"+dataset : attack_results.fp_mmps, "tn_mmps_"+attack_name+"_"+dataset : attack_results.tn_mmps, "fn_mmps_"+attack_name+"_"+dataset : attack_results.fn_mmps})
 
 
-def attack_model(model: nn.Module, attack_list: List[PredictionScoreAttack], member: dataset, non_member: dataset):
+def attack_model(model: nn.Module, attack_list: List[PredictionScoreAttack], member: dataset, non_member: dataset, dataset: String, arg_wandb: Boolean, ):
     """
     Takes the model, the list of attacks, a member and a non-member set and attacks the model with the given attacks.
     """
@@ -78,7 +81,7 @@ def attack_model(model: nn.Module, attack_list: List[PredictionScoreAttack], mem
     for current_attack in attack_list:
         attack_result = current_attack.evaluate(model, member, non_member)
         attack_result_list.append(attack_result)
-        print_attack_results(current_attack.display_name, attack_result)
+        print_attack_results(current_attack.display_name, attack_result, dataset, arg_wandb)
     return attack_result_list
 
 

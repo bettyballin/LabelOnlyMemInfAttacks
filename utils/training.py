@@ -18,8 +18,7 @@ def train_model(
     num_workers=4,
     filename=None,
     lr_scheduler=None,
-    rtpt=None,
-    wandb=None
+    rtpt=None
 ):
     model = model.cuda()
     trainloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, num_workers=num_workers, shuffle=True)
@@ -39,16 +38,11 @@ def train_model(
             lr_scheduler.step()
 
         model.eval()
-        if wandb:
-            wandb.log({"Training Acc": num_correct / len(dataset), "epoch": epoch})
 
         val_acc = 0
         if val_dataset:
             model.eval()
             val_acc = evaluate(model, val_dataset, batch_size=batch_size)
-
-            if wandb:
-                wandb.log({"Test Acc": val_acc, "epoch": epoch})
 
         print(f'Epoch {epoch}: Training Acc={num_correct/len(dataset):.2f} \t Validation Acc={val_acc:.2f}')
 

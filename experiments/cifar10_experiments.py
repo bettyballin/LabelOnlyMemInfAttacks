@@ -52,7 +52,7 @@ parser.add_argument(
     help='The size of the test set size for the target and the shadow model respectively'
 )
 parser.add_argument(
-    '--batch_size', default=64, type=int, help='The batch size used for training the target and the shadow model'
+    '--batch_size', default=128, type=int, help='The batch size used for training the target and the shadow model'
 )
 parser.add_argument(
     '--model_input_image_size', default=32, type=int, help='The size of the images used to train the model'
@@ -65,7 +65,7 @@ parser.add_argument(
 )
 parser.add_argument(
     '--salem_k',
-    default=1,
+    default=3,
     type=int,
     help='The number of top prediction scores used for the Salem membership inference attack'
 )
@@ -85,7 +85,7 @@ parser.add_argument(
 )
 parser.add_argument('--temp_value', default=None, type=float, help='Set a temperature value by hand')
 
-parser.add_argument('--wandb', action='store_true')
+parser.add_argument('--wandb', action='store_true', default=True)
 
 args = parser.parse_args()
 if args.label_smoothing:
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     # get the target and shadow model architecture
     target_model = get_model_architecture(MODEL_ARCH)
     shadow_model = get_model_architecture(MODEL_ARCH)
-
+    
     # train or load the model
     if TRAIN_MODEL:
         rtpt = RTPT(name_initials='', experiment_name=f'{MODEL_ARCH.upper()}', max_iterations=EPOCHS * 2)
@@ -283,8 +283,7 @@ if __name__ == '__main__':
             filename=TARGET_MODEL_FILE,
             weight_decay=WEIGHT_DECAY,
             label_smoothing_factor=LABEL_SMOOTHING_FACTOR if LABEL_SMOOTHING else None,
-            rtpt=rtpt,
-            wandb=False
+            rtpt=rtpt
         )
         train(
             model=shadow_model,
@@ -296,12 +295,18 @@ if __name__ == '__main__':
             filename=SHADOW_MODEL_FILE,
             weight_decay=WEIGHT_DECAY,
             label_smoothing_factor=LABEL_SMOOTHING_FACTOR if LABEL_SMOOTHING else None,
-            rtpt=rtpt,
-            wandb=False
+            rtpt=rtpt
         )
+        if args.wandb:
+            try:
+                torch.onnx.export(target_model, np.array(target_train[0]), "target_model.onnx")
+                wandb.save("target_model.onnx")
+            except Exception as e:
+                print(e)
     else:
         target_model.load_state_dict(torch.load(TARGET_MODEL_FILE))
         shadow_model.load_state_dict(torch.load(SHADOW_MODEL_FILE))
+    
     print('')
     print(
         f'Target Model Training Acc={evaluate(target_model, target_train):.4f} ' +
@@ -315,7 +320,7 @@ if __name__ == '__main__':
     print(f'ECE Shadow={expected_calibration_error(shadow_model, shadow_test, num_bins=15, apply_softmax=True):.4f}')
     print(f'Overconfidence Error Target={overconfidence_error(target_model, target_test, num_bins=15, apply_softmax=True):.4f}')
     print(f'Overconfidence Error Shadow={overconfidence_error(shadow_model, shadow_test, num_bins=15, apply_softmax=True):.4f}')
-
+    
     # create the permuted image dataset
     permuted_non_member_target = create_permuted_dataset(non_member_target)
     # create the scaled image dataset
@@ -376,11 +381,17 @@ if __name__ == '__main__':
         print(f'Overconfidence Error Temp. Calibrated Target Model={overconfidence_error(target_model, target_test, num_bins=15, apply_softmax=False):.4f}')
         print(f'Overconfidence Error Temp. Calibrated Shadow Model={overconfidence_error(shadow_model, shadow_test, num_bins=15, apply_softmax=False):.4f}')
 
+    if args.wandb:
+        wandb.log({'target model train acc': evaluate(target_model, target_train), 'target model test acc': evaluate(target_model, target_test)})
+        wandb.log({'shadow model train acc': evaluate(shadow_model, shadow_train), 'shadow model test acc': evaluate(shadow_model, shadow_test)})
+        wandb.log({'ECE target': expected_calibration_error(target_model, target_test, num_bins=15, apply_softmax=True), 'ECE shadow': expected_calibration_error(shadow_model, shadow_test, num_bins=15, apply_softmax=True)})
+        wandb.log({'Overconfidence Error Target': overconfidence_error(target_model, target_test, num_bins=15, apply_softmax=True), 'Overconfidence Error Shadow': overconfidence_error(shadow_model, shadow_test, num_bins=15, apply_softmax=True)})
+    
     # create the attacks
     attacks = [
-        ThresholdAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
-        EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+        #ThresholdAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+        #SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
+        #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
@@ -419,60 +430,58 @@ if __name__ == '__main__':
         # attack the models using the different non-member sets
         print('')
         print('Attack Model using Original Non-Members:')
-        results = attack_model(target_model, attacks, member_target, non_member_target)
+        results = attack_model(target_model, attacks, member_target, non_member_target, "Original Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Original')
 
-        if args.wandb:
-            for result in results:
-                wandb.log({"precision": result.precision, "recall": result.recall, "auroc": result.auroc, "aupr": result.aupr, "fpr_at_tpr95": result.fpr_at_tpr95, "fpr": result.fpr})
-            wandb.finish()
-            
         print('\n')
         print('Attack Model using Permuted Non-Members:')
-        results = attack_model(target_model, attacks, member_target, permuted_non_member_target)
+        results = attack_model(target_model, attacks, member_target, permuted_non_member_target, "Permuted Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Permuted')
-
+        
         print('\n')
         print('Attack Model using Scaled Non-Members:')
-        results = attack_model(target_model, attacks, member_target, scaled_non_member_target)
+        results = attack_model(target_model, attacks, member_target, scaled_non_member_target, "Scaled Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Scaled')
-
+    
         print('\n')
         print('Attack Model using Non-Members without Normalization:')
-        results = attack_model(target_model, attacks, member_target, un_normalized_non_member_target)
+        results = attack_model(target_model, attacks, member_target, un_normalized_non_member_target, "Non-Members without Normalization", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='No Normalization')
-
+       
         print('\n')
         print('Attack Model using STL-10 OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, stl10_ood_non_member_target)
+        results = attack_model(target_model, attacks, member_target, stl10_ood_non_member_target, "STL-10 OOD Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='STL-10')
-
+        
         print('\n')
         print('Attack Model using CIFAR-100 OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, cifar100_ood_non_member_target)
+        results = attack_model(target_model, attacks, member_target, cifar100_ood_non_member_target, "CIFAR-100 OOD Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='CIFAR100')
-
+    
         print('\n')
         print('Attack Model using SVHN OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, svhn_ood_non_member_target)
+        results = attack_model(target_model, attacks, member_target, svhn_ood_non_member_target, "SVHN OOD Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='SVHN')
-
+      
         print('\n')
         print('Attack Model using Stanford Dogs OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, stanford_dogs_ood_non_member_target)
+        results = attack_model(target_model, attacks, member_target, stanford_dogs_ood_non_member_target, "Stanford Dogs OOD Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Stanford Dogs')
-
+       
         print('\n')
         print('Attack Model using Fake Cifar-10 OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, fake_cifar10_ood_non_member_target)
+        results = attack_model(target_model, attacks, member_target, fake_cifar10_ood_non_member_target, "Fake Cifar-10 OOD Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Fake CIFAR-10')
-
+        
         print('\n')
-        print('Attack Model using AFHQ Dogs OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, afhq_dogs_ood_non_member_target)
+        print('Attack Model using AFHQ Dogs OOD Non-Members:')        
+        results = attack_model(target_model, attacks, member_target, afhq_dogs_ood_non_member_target, "AFHQ Dogs OOD Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='AFHQ Dogs')
-
+      
         print('\n')
         print('Attack Model using AFHQ Cats OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, afhq_cats_ood_non_member_target)
+        results = attack_model(target_model, attacks, member_target, afhq_cats_ood_non_member_target, "AFHQ Cats OOD Non-Members", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='AFHQ Cats')
+
+        if args.wandb:
+           wandb.finish()
