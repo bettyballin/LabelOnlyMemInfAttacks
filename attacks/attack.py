@@ -107,9 +107,9 @@ class PredictionScoreAttack:
         non_member_pred_scores = self.get_attack_model_prediction_scores(target_model, dataset=non_member_dataset)
         concat_preds = torch.cat((non_member_pred_scores, member_pred_scores))
         concat_targets = torch.tensor([0 for _ in non_member_pred_scores] + [1 for _ in member_pred_scores])
-
+        
         # for label-only metrics
-        if len(set(concat_preds.numpy())) == 2:
+        if len(set(concat_preds.numpy())) <= 2:
             auroc_value: float = auroc(
                 preds=concat_preds,
                 target=concat_targets,

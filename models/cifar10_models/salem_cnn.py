@@ -15,7 +15,8 @@ class SalemCNN_Tanh(nn.Module):
             nn.Flatten(),
             nn.Linear(2048, 128),
             nn.Tanh()
-        )
+        )       
+        self.linear = nn.Linear(128, num_classes)
         self.out = nn.Linear(128, num_classes)
 
     def forward(self, x):
@@ -38,9 +39,14 @@ class SalemCNN_Relu(nn.Module):
             nn.Linear(2048, 128),
             nn.ReLU()
         )
+        self.linear = nn.Linear(2048, num_classes)
         self.out = nn.Linear(128, num_classes)
+        
 
     def forward(self, x):
         features = self.model(x)
         output = self.out(features)
         return output
+
+def SalemCNN(num_classes=10):
+    return SalemCNN_Relu(num_classes=num_classes)

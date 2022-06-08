@@ -104,7 +104,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         self.tau = distance_threshold_tau
 
     def predict_membership(self, target_model: nn.Module, dataset: Dataset):
-         return self.get_attack_model_prediction_scores(target_model, dataset) == 1
+        predictions = self.get_attack_model_prediction_scores(target_model, dataset)
+        return predictions.numpy() == 1
 
     def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
         """
@@ -132,6 +133,6 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 x, y, y_pred = x.cpu().numpy(), y.cpu().numpy(), y_pred.cpu().numpy()
                 distance = np.linalg.norm((x_adv - x).reshape((x.shape[0], -1)), ord=2, axis=1)
                 distance[y_pred != y] = 0
-                dist.append(np.where(distance > self.tau, 1, 0))
+                dist.append(np.where(distance > self.tau, 1.0, 0.0))
         is_member = np.array(dist).reshape(-1)
-        return torch.from_numpy(is_member)   
+        return torch.from_numpy(is_member*1)
