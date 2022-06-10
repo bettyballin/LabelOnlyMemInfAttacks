@@ -124,15 +124,25 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         with torch.no_grad():
             loader = DataLoader(dataset, batch_size=self.batch_size, num_workers=8)
             for x, y in loader:
-                x, y = x.to(self.device), y.to(self.device)
-                x_adv = hsj.generate(x=x, y=y)
+                x, y = x.to(self.device), y.to(self.device) # [128,3,32,32], [128]
+                x_adv = hsj.generate(x=x, y=y) # [128,3,32,32]
+                print(x_adv.shape)
                 output = target_model(x)
                 if self.apply_softmax:
                     output = output.softmax(dim=1)
                 y_pred = torch.argmax(output, dim=1)
                 x, y, y_pred = x.cpu().numpy(), y.cpu().numpy(), y_pred.cpu().numpy()
+                print(x.shape)
+                print(y.shape)
+                print(y_pred.shape)
                 distance = np.linalg.norm((x_adv - x).reshape((x.shape[0], -1)), ord=2, axis=1)
                 distance[y_pred != y] = 0
-                dist.append(np.where(distance > self.tau, 1.0, 0.0))
+                print(distance.shape[0])
+                if distance.shape[0] == self.batch_size:
+                    dist.append(np.where(distance > self.tau, 1, 0))
+                else:
+                    print("not fully generated")
+        print(dist)
         is_member = np.array(dist).reshape(-1)
-        return torch.from_numpy(is_member*1)
+        print(is_member)
+        return torch.from_numpy(is_member)#*1)
