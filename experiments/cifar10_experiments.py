@@ -1,3 +1,4 @@
+import string
 import sys
 import os
 
@@ -37,7 +38,7 @@ parser.add_argument(
     help='The model architecture to use'
 )
 parser.add_argument(
-    '--epochs', default=10, type=int, help='The number of epochs the target and shadow model are trained for'
+    '--epochs', default=100, type=int, help='The number of epochs the target and shadow model are trained for'
 )
 parser.add_argument(
     '--train_set_size',
@@ -52,7 +53,7 @@ parser.add_argument(
     help='The size of the test set size for the target and the shadow model respectively'
 )
 parser.add_argument(
-    '--batch_size', default=128, type=int, help='The batch size used for training the target and the shadow model'
+    '--batch_size', default=64, type=int, help='The batch size used for training the target and the shadow model'
 )
 parser.add_argument(
     '--model_input_image_size', default=32, type=int, help='The size of the images used to train the model'
@@ -86,6 +87,8 @@ parser.add_argument(
 parser.add_argument('--temp_value', default=None, type=float, help='Set a temperature value by hand')
 
 parser.add_argument('--wandb', action='store_true', default=True)
+parser.add_argument('--logname', type=str, default="cifar10_run", help="name for the wandb instance")
+
 
 args = parser.parse_args()
 if args.label_smoothing:
@@ -106,7 +109,7 @@ if args.wandb:
       # Set the project where this run will be logged
       project="LblOnly_MemInf", 
       # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
-      #name=f"experiment_{run}", 
+      name=args.logname, 
       # Track hyperparameters and run metadata
       config=args
       )
@@ -392,10 +395,10 @@ if __name__ == '__main__':
         #ThresholdAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         #SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
         #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        #AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        #GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        #RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
+        AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+        GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+        #DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+        RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
     # learn the attack parameters for each attack
     for attack in attacks:
@@ -430,57 +433,57 @@ if __name__ == '__main__':
         # attack the models using the different non-member sets
         print('')
         print('Attack Model using Original Non-Members:')
-        results = attack_model(target_model, attacks, member_target, non_member_target, "Original Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, non_member_target, "Original", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Original')
 
         print('\n')
         print('Attack Model using Permuted Non-Members:')
-        results = attack_model(target_model, attacks, member_target, permuted_non_member_target, "Permuted Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, permuted_non_member_target, "Permuted", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Permuted')
         
         print('\n')
         print('Attack Model using Scaled Non-Members:')
-        results = attack_model(target_model, attacks, member_target, scaled_non_member_target, "Scaled Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, scaled_non_member_target, "Scaled", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Scaled')
     
         print('\n')
         print('Attack Model using Non-Members without Normalization:')
-        results = attack_model(target_model, attacks, member_target, un_normalized_non_member_target, "Non-Members without Normalization", args.wandb)
+        results = attack_model(target_model, attacks, member_target, un_normalized_non_member_target, "No Normalization", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='No Normalization')
        
         print('\n')
         print('Attack Model using STL-10 OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, stl10_ood_non_member_target, "STL-10 OOD Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, stl10_ood_non_member_target, "STL-10", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='STL-10')
         
         print('\n')
         print('Attack Model using CIFAR-100 OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, cifar100_ood_non_member_target, "CIFAR-100 OOD Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, cifar100_ood_non_member_target, "CIFAR-100", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='CIFAR100')
     
         print('\n')
         print('Attack Model using SVHN OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, svhn_ood_non_member_target, "SVHN OOD Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, svhn_ood_non_member_target, "SVHN", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='SVHN')
       
         print('\n')
         print('Attack Model using Stanford Dogs OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, stanford_dogs_ood_non_member_target, "Stanford Dogs OOD Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, stanford_dogs_ood_non_member_target, "Stanford Dogs", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Stanford Dogs')
        
         print('\n')
         print('Attack Model using Fake Cifar-10 OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, fake_cifar10_ood_non_member_target, "Fake Cifar-10 OOD Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, fake_cifar10_ood_non_member_target, "Fake Cifar-10", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='Fake CIFAR-10')
         
         print('\n')
         print('Attack Model using AFHQ Dogs OOD Non-Members:')        
-        results = attack_model(target_model, attacks, member_target, afhq_dogs_ood_non_member_target, "AFHQ Dogs OOD Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, afhq_dogs_ood_non_member_target, "AFHQ Dogs", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='AFHQ Dogs')
       
         print('\n')
         print('Attack Model using AFHQ Cats OOD Non-Members:')
-        results = attack_model(target_model, attacks, member_target, afhq_cats_ood_non_member_target, "AFHQ Cats OOD Non-Members", args.wandb)
+        results = attack_model(target_model, attacks, member_target, afhq_cats_ood_non_member_target, "AFHQ Cats", args.wandb)
         write_results_to_csv(csv_writer, results, row_label='AFHQ Cats')
 
         if args.wandb:

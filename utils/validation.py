@@ -1,7 +1,7 @@
 import torch
 
 
-def evaluate(model, dataset, batch_size=128, num_workers=4):
+def evaluate(model, dataset, batch_size=64, num_workers=4):
     model.eval()
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     num_corrects = 0
@@ -15,7 +15,7 @@ def evaluate(model, dataset, batch_size=128, num_workers=4):
     return num_corrects / len(dataset)
 
 
-def expected_calibration_error(model, dataset, num_bins, apply_softmax, batch_size=128, num_workers=4):
+def expected_calibration_error(model, dataset, num_bins, apply_softmax, batch_size=64, num_workers=8):
     model.eval()
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     pred_score_vectors = []
@@ -50,7 +50,7 @@ def expected_calibration_error(model, dataset, num_bins, apply_softmax, batch_si
 
 
 
-def overconfidence_error(model, dataset, num_bins, apply_softmax, batch_size=128, num_workers=4):
+def overconfidence_error(model, dataset, num_bins, apply_softmax, batch_size=64, num_workers=8):
     model.eval()
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     pred_score_vectors = []
