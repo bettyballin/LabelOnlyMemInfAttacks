@@ -89,6 +89,7 @@ parser.add_argument('--temp_value', default=None, type=float, help='Set a temper
 
 parser.add_argument('--wandb', action='store_true', default=True)
 parser.add_argument('--logname', default="stanford_dogs_run", type=str, help="name for the wandb instance")
+parser.add_argument('--boundary', action='store_true', default=False)
 
 args = parser.parse_args()
 if args.label_smoothing:
@@ -109,9 +110,12 @@ if args.pretrained and not args.train:
     raise Exception('Using model pre-trained on ImageNet can only be used when re-training the network')
 
 if args.wandb:
+    logname = args.logname
+    if args.logname == "stanford_dogs_run":
+        logname = input("Enter the name of this run: ")
     wandb.init(
       project="LblOnly_MemInf", 
-      name=args.logname,
+      name=logname,
       config=args
       )
 # --------------------------------------
@@ -342,15 +346,23 @@ if __name__ == '__main__':
         wandb.log({'Overconfidence Error Target': overconfidence_error(target_model, dataset_test, num_bins=15, apply_softmax=True), 'Overconfidence Error Shadow': overconfidence_error(shadow_model, dataset_test, num_bins=15, apply_softmax=True)})
     
     # create the attacks
-    attacks = [
-        #ThresholdAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        #SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
-        #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        #DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
-    ]
+    if args.boundary:
+        attacks = [
+            #ThresholdAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            #SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
+            #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            #AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            #GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            #RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
+        ]
+    else:
+        attacks = [
+            AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
+        ]
+        
     # learn the attack parameters for each attack
     for attack in attacks:
         attack.learn_attack_parameters(shadow_model, member_shadow, non_member_shadow)

@@ -25,10 +25,10 @@ class AFHQ(ImageFolder):
         self.root = root  # the root will be changed when the train or val images are loaded
         self.train = train
 
-        if download:
-            self.download()
-        if not self._check_integrity():
-            raise RuntimeError('Dataset not found or corrupted. You can use download=True to download it')
+        #if download:
+        #    self.download()
+        #if not self._check_integrity():
+        #    raise RuntimeError('Dataset not found or corrupted. You can use download=True to download it')
 
         # load the images as ImageFolder
         image_folder_path = os.path.join(root, 'afhq', 'train' if self.train else 'val')

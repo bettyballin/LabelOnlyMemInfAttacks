@@ -8,5 +8,7 @@ ENV LANG=C.UTF-8
 WORKDIR ./confidences
 COPY ./requirements.txt ./
 
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.cn/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
+
 RUN apt-get update && apt-get -y upgrade && apt-get -y install git nano build-essential cmake libboost-all-dev libgtk-3-dev git-lfs
 RUN pip install -r requirements.txt -f https://download.pytorch.org/whl/torch_stable.html
