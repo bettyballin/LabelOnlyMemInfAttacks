@@ -24,7 +24,6 @@ class SalemCNN_Tanh(nn.Module):
         output = self.out(features)
         return output
 
-
 class SalemCNN_Relu(nn.Module):
     def __init__(self, num_classes=10):
         super().__init__()
@@ -47,6 +46,3 @@ class SalemCNN_Relu(nn.Module):
         features = self.model(x)
         output = self.out(features)
         return output
-
-def SalemCNN(num_classes=10):
-    return SalemCNN_Relu(num_classes=num_classes)

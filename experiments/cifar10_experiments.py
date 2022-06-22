@@ -22,7 +22,7 @@ from utils.validation import evaluate, expected_calibration_error, overconfidenc
 from experiment_utils import train, attack_model, write_results_to_csv, get_llla_calibrated_models, \
     get_temp_calibrated_models
 
-from models.cifar10_models import ResNet18, SalemCNN, EfficientNetB0
+from models.cifar10_models import ResNet18, SalemCNN_Relu, EfficientNetB0
 
 # --------------------------------------
 # ARGUMENT PARSER
@@ -34,7 +34,7 @@ parser.add_argument('--seed', default=42, type=int, help='The seed to use')
 parser.add_argument(
     '--model_arch',
     default='resnet18',
-    choices=['salem_cnn', 'efficient_net', 'resnet18'],
+    choices=['salem_cnn_relu', 'efficient_net', 'resnet18'],
     help='The model architecture to use'
 )
 parser.add_argument(
@@ -185,8 +185,8 @@ def get_model_architecture(arch_name: str):
     # create the model architecture
     if arch_name == 'resnet18':
         model = ResNet18(num_classes=len(original_train_dataset.classes))
-    elif arch_name == 'salem_cnn':
-        model = SalemCNN(num_classes=len(original_train_dataset.classes))
+    elif arch_name == 'salem_cnn_relu':
+        model = SalemCNN_Relu(num_classes=len(original_train_dataset.classes))
     elif arch_name == 'efficient_net':
         model = EfficientNetB0(num_classes=len(original_train_dataset.classes))
     else:
@@ -410,7 +410,7 @@ if __name__ == '__main__':
             GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
             RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
         ]
-        
+
     # learn the attack parameters for each attack
     for attack in attacks:
         attack.learn_attack_parameters(shadow_model, member_shadow, non_member_shadow)
