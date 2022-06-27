@@ -68,9 +68,7 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 loader = DataLoader(dataset, batch_size=self.batch_size, num_workers=8)
                 for x, y in loader:
                     x, y = x.to(self.device), y.to(self.device)
-                    x_adv = hsj.generate(x=x, y=y)
-                    #print(np.array(x_adv).shape) [128,3,32,32]
-                    #x_adv = np.load(f)
+                    x_adv = hsj.generate(x=x, y=y) #[128,3,32,32]
                     output = shadow_model(x) 
                     if self.apply_softmax:
                         output = output.softmax(dim=1)

@@ -353,7 +353,7 @@ if __name__ == '__main__':
             #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
             #AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
             #GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-            DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            DecisionBoundaryAttack(input_shape=(3,224,224), apply_softmax=not (USE_LLLA or USE_TEMP)),
             #RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
         ]
     else:
