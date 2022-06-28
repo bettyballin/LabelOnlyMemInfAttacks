@@ -37,7 +37,7 @@ def train(
     """
     # train the target model
     optimizer = torch.optim.Adam(
-        model.parameters(), lr=0.001 if model_arch == 'salem_cnn_relu' else 0.01, weight_decay=weight_decay, betas=(0.9, 0.999),
+        model.parameters(), lr=0.01 if model_arch in ['efficient_net','resnet18'] else 0.001, weight_decay=weight_decay, betas=(0.9, 0.999),
     )
     loss_fkt = nn.CrossEntropyLoss()
     if label_smoothing_factor is not None:
@@ -53,7 +53,7 @@ def train(
         val_dataset=test_set,
         filename=filename,
         num_workers=16,
-        lr_scheduler=torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9),
+        lr_scheduler=torch.optim.lr_scheduler.ConstantLR(optimizer, factor=0.1, total_iters=80),
         rtpt=rtpt
     )
 
