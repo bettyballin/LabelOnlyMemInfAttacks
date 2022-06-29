@@ -66,6 +66,9 @@ parser.add_argument(
     help='The size of the member and non-member set respectively used for the membership inference attacks'
 )
 parser.add_argument(
+    '--augmentation_batch_size', default=8, type=int, help='The batch size used for training the model for the augmentation attack'
+)
+parser.add_argument(
     '--salem_k',
     default=3,
     type=int,
@@ -146,7 +149,7 @@ TEST_SET_SIZE = args.test_set_size
 BATCH_SIZE = args.batch_size
 MODEL_INPUT_IMAGE_SIZE = args.model_input_image_size
 IMAGENET_PRETRAINED = args.pretrained
-
+AUGMENTATION_BATCH_SIZE = args.augmentation_batch_size
 # parameters for the membership inference attack
 ATTACK_SET_SIZE = args.attack_set_size
 SALEM_K = args.salem_k
@@ -358,7 +361,7 @@ if __name__ == '__main__':
         ]
     else:
         attacks = [
-            AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+            AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP), augmentation_batch_size=AUGMENTATION_BATCH_SIZE),
             GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
             RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
         ]

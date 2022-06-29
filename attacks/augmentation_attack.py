@@ -198,7 +198,7 @@ class AugmentationAttack(PredictionScoreAttack):
         d=1,
         r=4,
         augmentation_batch_size: int = 16,
-        batch_size: int = 128,
+        batch_size: int = 64,
         log_training: bool = False
     ):
         """
@@ -242,8 +242,12 @@ class AugmentationAttack(PredictionScoreAttack):
                 # tensor size [16,1] (values 0-1)
                 no_member = no_member.to(self.device).unsqueeze(1)
                 # tensor size [16, 14, 10]
-                logits = shadow_model(image_tensor
+                try:
+                    logits = shadow_model(image_tensor
                                       ).view(-1, self.num_augmented_images, shadow_model.linear.out_features)
+                except Exception as e:
+                    logits = shadow_model(image_tensor
+                                      ).view(-1, self.num_augmented_images, shadow_model.fc.out_features)
                 output = logits.softmax(2)
                 # tensor size [16, 14]
                 predictions = torch.argmax(output, dim=2)
