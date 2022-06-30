@@ -217,6 +217,19 @@ class AugmentationAttack(PredictionScoreAttack):
         self.num_augmented_images = (self.r * 2 + 1) + (self.d * 4 + 1)
         self.attack_model = nn.Sequential(nn.Linear(self.num_augmented_images, 64), nn.ReLU(), nn.Linear(64, 1))
 
+    def get_out_features(model):
+        try:
+            out = model.linear.out_features
+        except Exception as e:
+            try:
+                out = model.fc.out_features # resnet50
+            except Exception as e:
+                try:
+                    out = model.model.linear.out_features #llla
+                except Exception as e:
+                    print(model)
+        return out
+        
     def learn_attack_parameters(self, shadow_model: nn.Module, member_dataset: Dataset, non_member_dataset: Dataset):
         shadow_model.to(self.device)
         shadow_model.eval()
@@ -241,17 +254,8 @@ class AugmentationAttack(PredictionScoreAttack):
                 class_label = class_label.to(self.device).unsqueeze(1)
                 # tensor size [16,1] (values 0-1)
                 no_member = no_member.to(self.device).unsqueeze(1)
-                # tensor size [16, 14, 10]
-
-                try:
-                    out = shadow_model.linear.out_features
-                except Exception as e:
-                    try:
-                        out = shadow_model.fc.out_features # resnet50
-                    except Exception as e:
-                        print(shadow_model)
-                        out = shadow_model.model.linear.out_features #llla
-                logits = shadow_model(image_tensor).view(-1, self.num_augmented_images, out)
+                # tensor size [16, 14, 10]                
+                logits = shadow_model(image_tensor).view(-1, self.num_augmented_images, self.get_out_features(shadow_model))
                 output = logits.softmax(2)
                 # tensor size [16, 14]
                 predictions = torch.argmax(output, dim=2)
@@ -357,7 +361,7 @@ class AugmentationAttack(PredictionScoreAttack):
                 )
                 class_label = class_label.to(self.device).unsqueeze(1)
                 logits = target_model(image_tensor
-                                      ).view(-1, self.num_augmented_images, target_model.linear.out_features)
+                                      ).view(-1, self.num_augmented_images, self.get_out_features(target_model))
                 output = logits.softmax(2)
                 predictions = torch.argmax(output, dim=2)
                 correct_class_predictions = (predictions == class_label)
