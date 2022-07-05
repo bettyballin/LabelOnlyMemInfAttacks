@@ -217,7 +217,7 @@ class AugmentationAttack(PredictionScoreAttack):
         self.num_augmented_images = (self.r * 2 + 1) + (self.d * 4 + 1)
         self.attack_model = nn.Sequential(nn.Linear(self.num_augmented_images, 64), nn.ReLU(), nn.Linear(64, 1))
 
-    def get_out_features(model):
+    def get_out_features(self, model):
         try:
             out = model.linear.out_features
         except Exception as e:
