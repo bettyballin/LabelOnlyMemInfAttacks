@@ -89,7 +89,7 @@ parser.add_argument('--temp_value', default=None, type=float, help='Set a temper
 parser.add_argument('--wandb', action='store_true', default=True)
 parser.add_argument('--logname', type=str, default="cifar10_run", help="name for the wandb instance")
 parser.add_argument('--boundary', action='store_true', default=False)
-parser.add_argument('--datasets', type=str, help="which datasets to use for the attacks (2 numbers)")
+parser.add_argument('--datasets', type=str, default="", help="which datasets to use for the attacks (2 numbers)")
 
 args = parser.parse_args()
 if args.label_smoothing:
@@ -159,7 +159,6 @@ TEMP_VALUE = args.temp_value
 
 WANDB = args.wandb
 DATASETS = []
-
 if args.datasets != "":
     DATASETS = [int(args.datasets[0+i:2+i]) for i in range(0, len(args.datasets), 2)]
 
