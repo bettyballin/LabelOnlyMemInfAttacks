@@ -454,7 +454,8 @@ if __name__ == '__main__':
         if DATASETS != []:
             datasets = [datasets[i] for i in DATASETS]
 
-        print("using as datasets: " + datasets)
+        print("using as datasets: ")
+        print(datasets)
 
         # attack the models using the different non-member sets
         for dataset in datasets:
