@@ -202,7 +202,7 @@ def get_model_architecture(arch_name: str):
 
     return model
 
-def attack(dataset, wb, target_model, attacks, member_target, permuted_non_member_target, csv_writer):
+def do_attack(dataset, wb, target_model, attacks, member_target, permuted_non_member_target, csv_writer):
     print('\n')
     print('Attack Model using '+dataset+' Non-Members:')
     results = attack_model(target_model, attacks, member_target, permuted_non_member_target, dataset, wb)
@@ -459,7 +459,7 @@ if __name__ == '__main__':
 
         # attack the models using the different non-member sets
         for dataset in datasets:
-            attack(dataset, args.wandb, target_model, attacks, member_target, non_member_target, csv_writer)
+            do_attack(dataset, args.wandb, target_model, attacks, member_target, non_member_target, csv_writer)
 
         if args.wandb:
            wandb.finish()
