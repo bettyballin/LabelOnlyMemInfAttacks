@@ -455,7 +455,7 @@ if __name__ == '__main__':
         csv_writer.writerow(column_labels)
 
         # attack the models using the different non-member sets
-        for dataset in datasets:
+        for dataset in DATASETS:
             do_attack(dataset, args.wandb, target_model, attacks, member_target, non_member_target, csv_writer)
 
         if args.wandb:
