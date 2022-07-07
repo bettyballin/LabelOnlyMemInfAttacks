@@ -158,9 +158,13 @@ USE_TEMP = args.temp_scaling
 TEMP_VALUE = args.temp_value
 
 WANDB = args.wandb
-DATASETS = []
+DATASETS = ["Original","Permuted", "Scaled", "No Normalization", "STL-10","CIFAR100", "SVHN", "Stanford Dogs","Fake CIFAR-10","AFHQ Dogs","AFHQ Cats"]
 if args.datasets != "":
-    DATASETS = [int(args.datasets[0+i:2+i]) for i in range(0, len(args.datasets), 2)]
+    indices = [int(args.datasets[0+i:2+i]) for i in range(0, len(args.datasets), 2)]
+    DATASETS = [DATASETS[i] for i in indices]
+    
+print("using as datasets: ")
+print(DATASETS)
 
 # set the seed and set pytorch to behave deterministically
 torch.manual_seed(SEED)
@@ -449,13 +453,6 @@ if __name__ == '__main__':
                 ]
             )
         csv_writer.writerow(column_labels)
-
-        datasets = ["Original","Permuted", "Scaled", "No Normalization", "STL-10","CIFAR100", "SVHN", "Stanford Dogs","Fake CIFAR-10","AFHQ Dogs","AFHQ Cats"]
-        if DATASETS != []:
-            datasets = [datasets[i] for i in DATASETS]
-
-        print("using as datasets: ")
-        print(datasets)
 
         # attack the models using the different non-member sets
         for dataset in datasets:
