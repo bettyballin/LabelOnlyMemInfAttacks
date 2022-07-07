@@ -1,0 +1,12 @@
+,DecisionBoundaryAttack Precision,DecisionBoundaryAttack Recall,DecisionBoundaryAttack AUROC,DecisionBoundaryAttack AUPR,DecisionBoundaryAttack FPR@95%TPR,DecisionBoundaryAttack FPR,DecisionBoundaryAttack TP_MMPS,DecisionBoundaryAttack FP_MMPS,DecisionBoundaryAttack FN_MMPS,DecisionBoundaryAttack TN_MMPS
+AFHQ Cats,0,0,0,0,0,0,0,0.0000,0,0
+AFHQ Dogs,0,0,0,0,0,0,0,0.0000,0,0
+CIFAR-100,0,0,0,0,0,0,0,0.0000,0,0
+Fake CIFAR-10,0,0,0,0,0,0,0,0.0000,0,0
+No Normalization,0,0,0,0,0,0,0,0.0000,0,0
+Original,0,0,0,0,0,0,0,0.9946,0,0
+Permuted,0,0,0,0,0,0,0,0.0000,0,0
+Scaled,0,0,0,0,0,0,0,1.0,0,0
+Stanford Dogs,0,0,0,0,0,0,0,0.0000,0,0
+STL-10,0,0,0,0,0,0,0,0.0000,0,0
+SVHN,0,0,0,0,0,0,0,0.0000,0,0

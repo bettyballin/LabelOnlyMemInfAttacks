@@ -53,7 +53,7 @@ def train(
         val_dataset=test_set,
         filename=filename,
         num_workers=16,
-        lr_scheduler=torch.optim.lr_scheduler.ConstantLR(optimizer, factor=0.1, total_iters=80),
+        lr_scheduler=torch.optim.lr_scheduler.StepLR(optimizer, 80, gamma=0.1),
         rtpt=rtpt
     )
 
