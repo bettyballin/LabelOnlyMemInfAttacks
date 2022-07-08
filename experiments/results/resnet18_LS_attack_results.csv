@@ -1,0 +1,12 @@
+,AugmentationAttack Precision,AugmentationAttack Recall,AugmentationAttack AUROC,AugmentationAttack AUPR,AugmentationAttack FPR@95%TPR,AugmentationAttack FPR,AugmentationAttack TP_MMPS,AugmentationAttack FP_MMPS,AugmentationAttack FN_MMPS,AugmentationAttack TN_MMPS,GapAttack Precision,GapAttack Recall,GapAttack AUROC,GapAttack AUPR,GapAttack FPR@95%TPR,GapAttack FPR,GapAttack TP_MMPS,GapAttack FP_MMPS,GapAttack FN_MMPS,GapAttack TN_MMPS,RandomNoiseAttack Precision,RandomNoiseAttack Recall,RandomNoiseAttack AUROC,RandomNoiseAttack AUPR,RandomNoiseAttack FPR@95%TPR,RandomNoiseAttack FPR,RandomNoiseAttack TP_MMPS,RandomNoiseAttack FP_MMPS,RandomNoiseAttack FN_MMPS,RandomNoiseAttack TN_MMPS
+AFHQ Cats,0,0,0,0,0,0,0,0.9393,0,0,0,0,0,0,0,0,0,0.9104,0,0,0,0,0,0,0,0,0,0.9258,0,0
+AFHQ Dogs,0,0,0,0,0,0,0,0.8506,0,0,0,0,0,0,0,0,0,0.9104,0,0,0,0,0,0,0,0,0,0.9716,0,0
+CIFAR-100,0,0,0,0,0,0,0,0.7436,0,0,0,0,0,0,0,0,0,0.75,0,0,0,0,0,0,0,0,0,0.6007,0,0
+Fake CIFAR-10,0,0,0,0,0,0,0,0.8856,0,0,0,0,0,0,0,0,0,0.933,0,0,0,0,0,0,0,0,0,0.8703,0,0
+No Normalization,0,0,0,0,0,0,0,0.6802,0,0,0,0,0,0,0,0,0,0.62,0,0,0,0,0,0,0,0,0,0.9403,0,0
+Original,0,0,0,0,0,0,0,0.8538,0,0,0,0,0,0,0,0,0,0.9104,0,0,0,0,0,0,0,0,0,0.854,0,0
+Permuted,0,0,0,0,0,0,0,0.882,0,0,0,0,0,0,0,0,0,0.6147,0,0,0,0,0,0,0,0,0,0.8716,0,0
+Scaled,0,0,0,0,0,0,0,0.8538,0,0,0,0,0,0,0,0,0,0.9895,0,0,0,0,0,0,0,0,0,0.9999,0,0
+Stanford Dogs,0,0,0,0,0,0,0,0.7351,0,0,0,0,0,0,0,0,0,0.8886,0,0,0,0,0,0,0,0,0,0.777,0,0
+STL-10,0,0,0,0,0,0,0,0.8118,0,0,0,0,0,0,0,0,0,0.8883,0,0,0,0,0,0,0,0,0,0.8166,0,0
+SVHN,0,0,0,0,0,0,0,0.7105,0,0,0,0,0,0,0,0,0,0.737,0,0,0,0,0,0,0,0,0,0.7165,0,0
