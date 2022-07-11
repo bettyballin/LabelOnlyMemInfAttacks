@@ -159,11 +159,12 @@ TEMP_VALUE = args.temp_value
 
 WANDB = args.wandb
 DATASETS = ["Original","Permuted", "Scaled", "No Normalization", "STL-10","CIFAR100", "SVHN", "Stanford Dogs","Fake CIFAR-10","AFHQ Dogs","AFHQ Cats"]
+INDICES = [i for i in range(11)]
 if args.datasets != "":
-    indices = [int(args.datasets[0+i:2+i]) for i in range(0, len(args.datasets), 2)]
- 
+    INDICES = [int(args.datasets[0+i:2+i]) for i in range(0, len(args.datasets), 2)]
+print(INDICES)
 print("using as datasets: ")
-print([DATASETS[i] for i in indices])
+print([DATASETS[i] for i in INDICES])
 
 # set the seed and set pytorch to behave deterministically
 torch.manual_seed(SEED)
@@ -452,10 +453,10 @@ if __name__ == '__main__':
                 ]
             )
         csv_writer.writerow(column_labels)
-        
+
         TARGETS = [non_member_target, permuted_non_member_target, scaled_non_member_target, un_normalized_non_member_target, stl10_ood_non_member_target, cifar100_ood_non_member_target, svhn_ood_non_member_target, stanford_dogs_ood_non_member_target, fake_cifar10_ood_non_member_target, afhq_dogs_ood_non_member_target, afhq_cats_ood_non_member_target]
         # attack the models using the different non-member sets
-        for i in indices:
+        for i in INDICES:
             do_attack(DATASETS[i], args.wandb, target_model, attacks, member_target, TARGETS[i], csv_writer)
 
         if args.wandb:

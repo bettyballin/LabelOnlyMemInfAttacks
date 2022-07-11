@@ -164,11 +164,12 @@ TEMP_VALUE = args.temp_value
 
 WANDB = args.wandb
 DATASETS = ["Original","Fake Dogs", "AFHQ Dogs", "AFHQ Cats", "AFHQ Wilds","AFHQ NonDogs", "Permuted", "Scaled","No Normalization"]
+INDICES = [i for i in range(9)]
 if args.datasets != "":
-    indices = [int(args.datasets[0+i:2+i]) for i in range(0, len(args.datasets), 2)]
- 
+    INDICES = [int(args.datasets[0+i:2+i]) for i in range(0, len(args.datasets), 2)]
+
 print("using as datasets: ")
-print([DATASETS[i] for i in indices])
+print([DATASETS[i] for i in INDICES])
 
 # set the seed and set pytorch to behave deterministically
 torch.manual_seed(SEED)
