@@ -180,7 +180,7 @@ torch.backends.cudnn.deterministic = True
 
 
 def get_model_architecture(pretrained):
-    model = ResNet50(pretrained)
+    model = resnet50(pretrained)
     model.fc = torch.nn.Linear(2048, 120, bias=True)
     # set the correct device for the architecture
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -376,7 +376,7 @@ if __name__ == '__main__':
         attacks = [
             AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP), augmentation_batch_size=AUGMENTATION_BATCH_SIZE),
             GapAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-            RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
+            RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP),batch_size=BATCH_SIZE)
         ]
         
     # learn the attack parameters for each attack
@@ -451,7 +451,7 @@ if __name__ == '__main__':
         # attack the models using the different non-member sets
 
         TARGET = [non_member_target, fake_stanford_dogs, afhq_dogs, afhq_cats, afhq_wilds, afhq_rest, permuted_non_member_target, scaled_non_member_target, un_normalized_non_member_target]
-        for i in indices:
+        for i in INDICES:
             do_attack(DATASETS[i], args.wandb, target_model, attacks, member_target, TARGET[i], csv_writer)
 
         if args.wandb:
