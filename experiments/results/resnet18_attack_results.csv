@@ -1,12 +1,12 @@
 ,AugmentationAttack Precision,AugmentationAttack Recall,AugmentationAttack AUROC,AugmentationAttack AUPR,AugmentationAttack FPR@95%TPR,AugmentationAttack FPR,AugmentationAttack TP_MMPS,AugmentationAttack FP_MMPS,AugmentationAttack FN_MMPS,AugmentationAttack TN_MMPS,GapAttack Precision,GapAttack Recall,GapAttack AUROC,GapAttack AUPR,GapAttack FPR@95%TPR,GapAttack FPR,GapAttack TP_MMPS,GapAttack FP_MMPS,GapAttack FN_MMPS,GapAttack TN_MMPS,RandomNoiseAttack Precision,RandomNoiseAttack Recall,RandomNoiseAttack AUROC,RandomNoiseAttack AUPR,RandomNoiseAttack FPR@95%TPR,RandomNoiseAttack FPR,RandomNoiseAttack TP_MMPS,RandomNoiseAttack FP_MMPS,RandomNoiseAttack FN_MMPS,RandomNoiseAttack TN_MMPS
-AFHQ Cats,0,0,0,0,0,0,0,0.9242,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-AFHQ Dogs,0,0,0,0,0,0,0,0.9084,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-CIFAR-100,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-Fake CIFAR-10,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-No Normalization,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-Original,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-Permuted,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-Scaled,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-Stanford Dogs,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-STL-10,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
-SVHN,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0,0,0,0,0,0,0,0,0.9997,0,0
+AFHQ Cats,0,0,0,0,0,0,0,0.9371,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.939,0,0
+AFHQ Dogs,0,0,0,0,0,0,0,0.9387,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.942,0,0
+CIFAR-100,0,0,0,0,0,0,0,0.9381,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.9371,0,0
+Fake CIFAR-10,0,0,0,0,0,0,0,0.9362,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.941,0,0
+No Normalization,0,0,0,0,0,0,0,0.9384,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.937,0,0
+Original,0,0,0,0,0,0,0,0.938,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.9354,0,0
+Permuted,0,0,0,0,0,0,0,0.9345,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.9387,0,0
+Scaled,0,0,0,0,0,0,0,0.9366,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.9387,0,0
+Stanford Dogs,0,0,0,0,0,0,0,0.9405,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.9375,0,0
+STL-10,0,0,0,0,0,0,0,0.9349,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.9351,0,0
+SVHN,0,0,0,0,0,0,0,0.9371,0,0,0,0,0,0,0,0,0,0.9703,0,0,0,0,0,0,0,0,0,0.94,0,0

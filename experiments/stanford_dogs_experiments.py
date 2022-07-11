@@ -93,6 +93,7 @@ parser.add_argument('--temp_value', default=None, type=float, help='Set a temper
 parser.add_argument('--wandb', action='store_true', default=True)
 parser.add_argument('--logname', default="stanford_dogs_run", type=str, help="name for the wandb instance")
 parser.add_argument('--boundary', action='store_true', default=False)
+parser.add_argument('--datasets', type=str, default="", help="which datasets to use for the attacks (2 numbers)")
 
 args = parser.parse_args()
 if args.label_smoothing:
@@ -162,6 +163,12 @@ USE_TEMP = args.temp_scaling
 TEMP_VALUE = args.temp_value
 
 WANDB = args.wandb
+DATASETS = ["Original","Fake Dogs", "AFHQ Dogs", "AFHQ Cats", "AFHQ Wilds","AFHQ NonDogs", "Permuted", "Scaled","No Normalization"]
+if args.datasets != "":
+    indices = [int(args.datasets[0+i:2+i]) for i in range(0, len(args.datasets), 2)]
+ 
+print("using as datasets: ")
+print([DATASETS[i] for i in indices])
 
 # set the seed and set pytorch to behave deterministically
 torch.manual_seed(SEED)
@@ -172,7 +179,7 @@ torch.backends.cudnn.deterministic = True
 
 
 def get_model_architecture(pretrained):
-    model = resnet50(pretrained)
+    model = ResNet50(pretrained)
     model.fc = torch.nn.Linear(2048, 120, bias=True)
     # set the correct device for the architecture
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -180,7 +187,12 @@ def get_model_architecture(pretrained):
 
     return model
 
-
+def do_attack(dataset, wb, target_model, attacks, member_target, permuted_non_member_target, csv_writer):
+    print('\n')
+    print('Attack Model using '+dataset+' Non-Members:')
+    results = attack_model(target_model, attacks, member_target, permuted_non_member_target, dataset, wb)
+    write_results_to_csv(csv_writer, results, row_label=dataset)
+   
 if __name__ == '__main__':
     # get the transform for the datasets
     dataset_normalize = get_normalization(DATASET_NAME)
@@ -436,50 +448,10 @@ if __name__ == '__main__':
         csv_writer.writerow(column_labels)
 
         # attack the models using the different non-member sets
-        print('Attack Model using Original Non-Members:')
-        results = attack_model(target_model, attacks, member_target, non_member_target, "Original", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='Original')
 
-        print('\n')
-        print('Attack Model using Fake Dogs Non-Members:')
-        results = attack_model(target_model, attacks, member_target, fake_stanford_dogs, "Fake Dogs", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='Fake Dogs')
-
-        print('\n')
-        print('Attack Model using AFHQ Dogs Non-Members:')
-        results = attack_model(target_model, attacks, member_target, afhq_dogs, "AFHQ Dogs", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='AFHQ-Dogs')
-
-        print('\n')
-        print('Attack Model using AFHQ Cats Non-Members:')
-        results = attack_model(target_model, attacks, member_target, afhq_cats, "AFHQ Cats", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='AFHQ-Cats')
-
-        print('\n')
-        print('Attack Model using AFHQ Wild Non-Members:')
-        results = attack_model(target_model, attacks, member_target, afhq_wilds, "AFHQ Wilds", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='AFHQ-Wilds')
-
-        print('\n')
-        print('Attack Model using AFHQ Non-Dogs Non-Members:')
-        results = attack_model(target_model, attacks, member_target, afhq_rest, "AFHQ NonDogs", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='AFHQ-NonDogs')
-
-        print('\n')
-        print('Attack Model using Permuted Non-Members:')
-        results = attack_model(target_model, attacks, member_target, permuted_non_member_target, "Permuted", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='Permuted')
-
-        print('\n')
-        print('Attack Model using Scaled Non-Members:')
-        results = attack_model(target_model, attacks, member_target, scaled_non_member_target, "Scaled", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='Scaled')
-
-        print('\n')
-        print('Attack Model using Non-Members without Normalization:')
-        results = attack_model(target_model, attacks, member_target, un_normalized_non_member_target, "No Normalization", args.wandb)
-        write_results_to_csv(csv_writer, results, row_label='No Normalization')
-
+        TARGET = [non_member_target, fake_stanford_dogs, afhq_dogs, afhq_cats, afhq_wilds, afhq_rest, permuted_non_member_target, scaled_non_member_target, un_normalized_non_member_target]
+        for i in indices:
+            do_attack(DATASETS[i], args.wandb, target_model, attacks, member_target, TARGET[i], csv_writer)
 
         if args.wandb:
            wandb.finish()
