@@ -7,6 +7,7 @@ from torch.utils.data import Dataset, DataLoader, TensorDataset
 import numpy as np
 from tqdm import tqdm
 from typing import Tuple
+from rtpt import RTPT
 
 from .attack import PredictionScoreAttack
 from .hopskipjump import HopSkipJump
@@ -61,6 +62,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
 
         hsj = HopSkipJump(classifier=shadow_model, apply_softmax=self.apply_softmax, input_shape=self.input_shape, device=self.device)
 
+        rtpt = RTPT(name_initials='BB', experiment_name='DecisionBoundary_learn', max_iterations=len(member_dataset)+len(non_member_dataset))
+        rtpt.start()
         with torch.no_grad():
             distance_train = []
             distance_test = []
@@ -80,6 +83,7 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                         distance_train.append(np.amax(distance))
                     else:
                         distance_test.append(np.amax(distance))
+                    rtpt.step()
             tau_increment = np.amax([np.amax(distance_train), np.amax(distance_test)]) / 100
             acc_max = 0.0
             distance_threshold_tau = 0.0
@@ -119,6 +123,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         """
         hsj = HopSkipJump(classifier=target_model, apply_softmax=self.apply_softmax, input_shape=self.input_shape, device=self.device)
         dist = []
+        rtpt = RTPT(name_initials='BB', experiment_name='DecisionBoundary_prediction', max_iterations=len(dataset))
+        rtpt.start()
         with torch.no_grad():
             loader = DataLoader(dataset, batch_size=self.batch_size, num_workers=8)
             for x, y in loader:
@@ -135,5 +141,6 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                     dist.append(np.where(distance > self.tau, 1, 0))
                 else:
                     print("not fully generated")
+                rtpt.step()
         is_member = np.array(dist).reshape(-1)
         return torch.from_numpy(is_member)#*1)

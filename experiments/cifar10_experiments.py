@@ -290,7 +290,7 @@ if __name__ == '__main__':
     
     # train or load the model
     if TRAIN_MODEL:
-        rtpt = RTPT(name_initials='', experiment_name=f'{MODEL_ARCH.upper()}', max_iterations=EPOCHS * 2)
+        rtpt = RTPT(name_initials='BB', experiment_name=f'{MODEL_ARCH.upper()}', max_iterations=EPOCHS * 2)
         rtpt.start()
         train(
             model=target_model,

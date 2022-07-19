@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import numpy as np
 from tqdm import tqdm
+from rtpt import RTPT
 
 from .attack import PredictionScoreAttack
 from utils.training import EarlyStopper
@@ -239,7 +240,8 @@ class AugmentationAttack(PredictionScoreAttack):
         data_loader = DataLoader(
             combined_shadow_dataset, shuffle=True, batch_size=self.augmentation_batch_size, num_workers=8
         )
-
+        rtpt = RTPT(name_initials='BB', experiment_name='AugmentationAttack_augment_images', max_iterations=len(combined_shadow_dataset))
+        rtpt.start()
         # get the prediction values of the shadow model
         with torch.no_grad():
             prediction_vectors = []
@@ -266,6 +268,7 @@ class AugmentationAttack(PredictionScoreAttack):
                 prediction_vectors.append(correct_class_predictions)
                 # list with tensor size [16, 1]
                 membership_label_vector.append(no_member)
+                rtpt.step()
 
         # tensor size [5000, 14] (values True, False): is class correctly predicted
         prediction_vectors = torch.cat(prediction_vectors)
@@ -291,6 +294,8 @@ class AugmentationAttack(PredictionScoreAttack):
         while not early_stopper.stop_early(last_loss):
             running_loss = 0.0
             accuracy.reset()
+            rtpt = RTPT(name_initials='BB', experiment_name='AugmentationAttack_attackmodel', max_iterations=len(membership_predictor_dataloader))
+            rtpt.start()
             for idx, (batch, member_labels) in enumerate(membership_predictor_dataloader):
                 # batch: [128, 14] (False, True), member_labels: [128, 1] (0,1)
                 batch, member_labels = batch.to(self.device), member_labels.to(self.device)
@@ -304,6 +309,7 @@ class AugmentationAttack(PredictionScoreAttack):
 
                 running_loss += loss.item() * batch.size(0)
                 accuracy.update(outputs.sigmoid(), member_labels)
+                rtpt.step()
 
             training_loss = running_loss / len(membership_predictor_dataloader)
             last_loss = training_loss
@@ -350,7 +356,8 @@ class AugmentationAttack(PredictionScoreAttack):
         data_loader = DataLoader(
             augmentation_dataset, shuffle=True, batch_size=self.augmentation_batch_size, num_workers=8
         )
-
+        rtpt = RTPT(name_initials='BB', experiment_name='AugmentationAttack_prediction_vecs', max_iterations=len(augmentation_dataset))
+        rtpt.start()
         # get the prediction values of the shadow model
         with torch.no_grad():
             prediction_vectors = []
@@ -367,6 +374,7 @@ class AugmentationAttack(PredictionScoreAttack):
                 correct_class_predictions = (predictions == class_label)
 
                 prediction_vectors.append(correct_class_predictions)
+                rtpt.step()
 
         prediction_vectors = torch.cat(prediction_vectors)
 

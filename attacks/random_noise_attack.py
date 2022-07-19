@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import numpy as np
 from tqdm import tqdm
+from rtpt import RTPT
 
 from .attack import PredictionScoreAttack
 from utils.training import EarlyStopper
@@ -71,12 +72,16 @@ class RandomNoiseAttack(PredictionScoreAttack):
         # estimate distance of decision boundary
         member_distances = np.empty(len(member_dataset))
         non_member_distances = np.empty(len(non_member_dataset))
+        rtpt = RTPT(name_initials='BB', experiment_name='RandomNoise_estimate_tau', max_iterations=len(member_dataset)+len(non_member_dataset))
+        rtpt.start()
         for i, (x, y) in enumerate(tqdm(membership_loader, desc='Estimating distance for membership samples')):
             distances = self.estimate_distance(x, y, shadow_model, sigma)
             member_distances[i * len(x):i * len(x) + len(x)] = distances
+            rtpt.step()
         for i, (x, y) in enumerate(tqdm(non_membership_loader, desc='Estimating distance for non-membership samples')):
             distances = self.estimate_distance(x, y, shadow_model, sigma)
             non_member_distances[i * len(x):i * len(x) + len(x)] = distances
+            rtpt.step()
 
         # estimate membership decision boundary tau by linear search
         best_acc = 0.0
@@ -165,6 +170,8 @@ class RandomNoiseAttack(PredictionScoreAttack):
         target_model.eval()
         dataloader = DataLoader(dataset, shuffle=True, batch_size=self.batch_size, num_workers=8)
         predictions = np.zeros(len(dataset), dtype=bool)
+        rtpt = RTPT(name_initials='BB', experiment_name='DecisionBoundary_predict', max_iterations=len(dataset))
+        rtpt.start()
         with torch.no_grad():
             for i, (x, y) in enumerate(dataloader):
                 x, y = x.to(self.device), y.to(self.device)
@@ -179,5 +186,6 @@ class RandomNoiseAttack(PredictionScoreAttack):
                 dist[mask == False] = 0
 
                 predictions[i * len(x):i * len(x) + len(x)] = dist > self.tau
+                rtpt.step()
 
         return torch.from_numpy(predictions*1)
