@@ -158,6 +158,7 @@ USE_TEMP = args.temp_scaling
 TEMP_VALUE = args.temp_value
 
 WANDB = args.wandb
+"""
 DATASETS = ["Original","Permuted", "Scaled", "No Normalization", "STL-10","CIFAR100", "SVHN", "Stanford Dogs","Fake CIFAR-10","AFHQ Dogs","AFHQ Cats"]
 INDICES = [i for i in range(11)]
 if args.datasets != "":
@@ -165,6 +166,7 @@ if args.datasets != "":
 print(INDICES)
 print("using as datasets: ")
 print([DATASETS[i] for i in INDICES])
+"""
 
 # set the seed and set pytorch to behave deterministically
 torch.manual_seed(SEED)
@@ -454,10 +456,66 @@ if __name__ == '__main__':
             )
         csv_writer.writerow(column_labels)
 
-        TARGETS = [non_member_target, permuted_non_member_target, scaled_non_member_target, un_normalized_non_member_target, stl10_ood_non_member_target, cifar100_ood_non_member_target, svhn_ood_non_member_target, stanford_dogs_ood_non_member_target, fake_cifar10_ood_non_member_target, afhq_dogs_ood_non_member_target, afhq_cats_ood_non_member_target]
+        #TARGETS = [non_member_target, permuted_non_member_target, scaled_non_member_target, un_normalized_non_member_target, stl10_ood_non_member_target, cifar100_ood_non_member_target, svhn_ood_non_member_target, stanford_dogs_ood_non_member_target, fake_cifar10_ood_non_member_target, afhq_dogs_ood_non_member_target, afhq_cats_ood_non_member_target]
         # attack the models using the different non-member sets
-        for i in INDICES:
-            do_attack(DATASETS[i], args.wandb, target_model, attacks, member_target, TARGETS[i], csv_writer)
+        #for i in INDICES:
+        #    do_attack(DATASETS[i], args.wandb, target_model, attacks, member_target, TARGETS[i], csv_writer)
+
+        # attack the models using the different non-member sets
+        print('')
+        print('Attack Model using Original Non-Members:')
+        results = attack_model(target_model, attacks, member_target, non_member_target, 'Original', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='Original')
+
+        print('\n')
+        print('Attack Model using Permuted Non-Members:')
+        results = attack_model(target_model, attacks, member_target, permuted_non_member_target, 'Permuted', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='Permuted')
+
+        print('\n')
+        print('Attack Model using Scaled Non-Members:')
+        results = attack_model(target_model, attacks, member_target, scaled_non_member_target, 'Scaled', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='Scaled')
+
+        print('\n')
+        print('Attack Model using Non-Members without Normalization:')
+        results = attack_model(target_model, attacks, member_target, un_normalized_non_member_target, 'No Normalization', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='No Normalization')
+
+        print('\n')
+        print('Attack Model using STL-10 OOD Non-Members:')
+        results = attack_model(target_model, attacks, member_target, stl10_ood_non_member_target, 'STL-10', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='STL-10')
+
+        print('\n')
+        print('Attack Model using CIFAR-100 OOD Non-Members:')
+        results = attack_model(target_model, attacks, member_target, cifar100_ood_non_member_target, 'CIFAR100', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='CIFAR100')
+
+        print('\n')
+        print('Attack Model using SVHN OOD Non-Members:')
+        results = attack_model(target_model, attacks, member_target, svhn_ood_non_member_target, 'SVHN', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='SVHN')
+
+        print('\n')
+        print('Attack Model using Stanford Dogs OOD Non-Members:')
+        results = attack_model(target_model, attacks, member_target, stanford_dogs_ood_non_member_target, 'Stanford Dogs', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='Stanford Dogs')
+
+        print('\n')
+        print('Attack Model using Fake Cifar-10 OOD Non-Members:')
+        results = attack_model(target_model, attacks, member_target, fake_cifar10_ood_non_member_target, 'Fake CIFAR-10', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='Fake CIFAR-10')
+
+        print('\n')
+        print('Attack Model using AFHQ Dogs OOD Non-Members:')
+        results = attack_model(target_model, attacks, member_target, afhq_dogs_ood_non_member_target, 'AFHQ Dogs', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='AFHQ Dogs')
+
+        print('\n')
+        print('Attack Model using AFHQ Cats OOD Non-Members:')
+        results = attack_model(target_model, attacks, member_target, afhq_cats_ood_non_member_target, 'AFHQ Cats', args.wandb)
+        write_results_to_csv(csv_writer, results, row_label='AFHQ Cats')
 
         if args.wandb:
            wandb.finish()
