@@ -30,9 +30,9 @@ class HopSkipJump():
         device,
         targeted: bool = False,
         norm=2,
-        max_iter: int = 10,
+        max_iter: int = 1,
         max_eval: int = 500,
-        init_eval: int = 10,
+        init_eval: int = 1,
         init_size: int = 100,
         verbose: bool = True,
         rtpt=None
@@ -116,10 +116,10 @@ class HopSkipJump():
             start = 0
 
         # Prediction from the original images
-        output = self.estimator(x)               # [2500, 10]
+        output = self.estimator(x)               # [128, 10]
         if self.apply_softmax:
             output = output.softmax(dim=1)
-        preds = torch.argmax(output, dim=1) # [2500]
+        preds = torch.argmax(output, dim=1) # [128]
 
         # convert tensor to numpy array
         x = x.cpu().numpy()
@@ -148,9 +148,14 @@ class HopSkipJump():
             raise ValueError("Target labels `y` need to be provided for a targeted attack.")
 
         # Some initial setups
-        x_adv = x.astype(float) # [2500, 3, 32, 32]
+        x_adv = x.astype(float) # [128, 3, 32, 32]
 
         # Generate the adversarial samples
+        if self.targeted:
+            x_adv = self._perturb(x_adv,y,preds,init_preds,np.array(x_adv_init),None,clip_min,clip_max)
+        else:
+            x_adv = self._perturb(x_adv,np.ones(y.shape)*(-1),preds,init_preds,np.array(x_adv_init),None,clip_min,clip_max)
+        '''
         for ind in tqdm(range(len(x_adv)), desc='HopSkipJump: perturbating samples'):
             val = x_adv[ind]
             self.curr_iter = start
@@ -181,15 +186,15 @@ class HopSkipJump():
 
             if self.rtpt is not None:
                 self.rtpt.step()
-
+        '''
         return x_adv
 
     def _perturb(
         self,
         x: np.ndarray,
-        y: int,
-        y_p: int,
-        init_pred: int,
+        y: np.ndarray,#int,
+        y_p: np.ndarray,#int,
+        init_pred: np.ndarray,#int,
         adv_init: np.ndarray,
         mask,
         clip_min: float,
@@ -210,7 +215,7 @@ class HopSkipJump():
         :return: An adversarial example.
         """
         # First, create an initial adversarial sample
-        initial_sample = self._init_sample(x, y, y_p, init_pred, adv_init, mask, clip_min, clip_max)
+        initial_sample = self._init_sample(x, y, y_p, init_pred, adv_init, mask, clip_min, clip_max) # [  [1] / [3, 32, 32],  [1] ]
 
         # If an initial adversarial example is not found, then return the original image
         if initial_sample is None:
@@ -224,10 +229,10 @@ class HopSkipJump():
     def _init_sample(
         self,
         x: np.ndarray,
-        y: int,
-        y_p: int,
-        init_pred: int,
-        adv_init: np.ndarray,
+        y: np.ndarray,#int,
+        y_p: np.ndarray,#int,
+        init_pred: np.ndarray,#int,
+        adv_init: np.ndarray,#int,
         mask,
         clip_min: float,
         clip_max: float
@@ -255,7 +260,7 @@ class HopSkipJump():
                 return None
 
             # Attack unsatisfied yet and the initial image satisfied
-            if adv_init is not None and init_pred == y:
+            if all(adv_init!=None) and init_pred == y:#adv_init is not None
                 return adv_init.astype(float), init_pred
 
             # Attack unsatisfied yet and the initial image unsatisfied
@@ -266,11 +271,11 @@ class HopSkipJump():
                     random_img = random_img * mask + x * (1 - mask)
 
                 #random_class = self.estimator(torch.from_numpy(np.array([random_img])))[0]
-                input = torch.from_numpy(np.array([random_img])).to(self.device)
+                input = torch.from_numpy(np.array(random_img)).to(self.device)
                 output = self.estimator(input)
                 random_class = torch.argmax(output, dim=1)
 
-                if random_class == y:
+                if any(random_class.cpu().numpy()!=y.cpu().numpy()):#random_class != y:
                     # Binary search to reduce the l2 distance to the original image
                     random_img = self._binary_search(
                         current_sample=random_img,
@@ -285,7 +290,7 @@ class HopSkipJump():
 
         else:
             # The initial image satisfied
-            if adv_init is not None and init_pred != y_p:
+            if all(adv_init!=None) and init_pred != y_p:#adv_init is not None
                 return adv_init.astype(float), y_p
 
             # The initial image unsatisfied
@@ -295,11 +300,11 @@ class HopSkipJump():
                 if mask is not None:
                     random_img = random_img * mask + x * (1 - mask)
 
-                input = torch.from_numpy(np.array([random_img])).to(self.device, dtype=torch.float) # [3, 32, 32]
+                input = torch.from_numpy(np.array(random_img)).to(self.device, dtype=torch.float) # [3, 32, 32]
                 output = self.estimator(input) # [1, 10]
                 random_class = torch.argmax(output, dim=1)
 
-                if random_class != y_p:
+                if any(random_class.cpu().numpy()!=y_p.cpu().numpy()):#random_class != y_p:
                     # Binary search to reduce the l2 distance to the original image
                     random_img = self._binary_search(
                         current_sample=random_img,
@@ -320,7 +325,7 @@ class HopSkipJump():
         self,
         initial_sample: np.ndarray,
         original_sample: np.ndarray,
-        target: int,
+        target: np.ndarray,#int,
         mask,
         clip_min: float,
         clip_max: float,
@@ -363,7 +368,7 @@ class HopSkipJump():
             # Next compute the number of evaluations and compute the update
             num_eval = min(int(self.init_eval * np.sqrt(self.curr_iter + 1)), self.max_eval)
 
-            update = self._compute_update(
+            update = self._compute_update(#!!
                 current_sample=current_sample,
                 num_eval=num_eval,
                 delta=delta,
@@ -386,7 +391,7 @@ class HopSkipJump():
                 epsilon /= 2.0
                 potential_sample = current_sample + epsilon * update
                 success = self._adversarial_satisfactory(
-                    samples=potential_sample[None],
+                    samples=potential_sample,#[None],
                     target=target,
                     clip_min=clip_min,
                     clip_max=clip_max,
@@ -404,7 +409,7 @@ class HopSkipJump():
         self,
         current_sample: np.ndarray,
         original_sample: np.ndarray,
-        target: int,
+        target: np.ndarray,#int,
         norm,
         clip_min: float,
         clip_max: float,
@@ -450,7 +455,7 @@ class HopSkipJump():
 
             # Update upper_bound and lower_bound
             satisfied = self._adversarial_satisfactory(
-                samples=interpolated_sample[None],
+                samples=interpolated_sample,#[None],
                 target=target,
                 clip_min=clip_min,
                 clip_max=clip_max,
@@ -501,7 +506,7 @@ class HopSkipJump():
         current_sample: np.ndarray,
         num_eval: int,
         delta: float,
-        target: int,
+        target: np.ndarray,#int,
         mask,
         clip_min: float,
         clip_max: float,
@@ -534,7 +539,7 @@ class HopSkipJump():
         rnd_noise = rnd_noise / np.sqrt(
             np.sum(rnd_noise**2, axis=tuple(range(len(rnd_noise_shape)))[1:], keepdims=True)
         )
-        eval_samples = np.clip(current_sample + delta * rnd_noise, clip_min, clip_max)
+        eval_samples = np.clip(current_sample + delta * rnd_noise.squeeze(), clip_min, clip_max)
         rnd_noise = (eval_samples - current_sample) / delta
 
         # Compute gradient: This is a bit different from the original paper, instead we keep those that are
@@ -565,7 +570,7 @@ class HopSkipJump():
         return result
 
     def _adversarial_satisfactory(
-        self, samples: np.ndarray, target: int, clip_min: float, clip_max: float
+        self, samples: np.ndarray, target: np.ndarray, clip_min: float, clip_max: float #int
     ) -> np.ndarray:
         """
         Check whether an image is adversarial.
@@ -583,11 +588,11 @@ class HopSkipJump():
         preds = torch.argmax(output, dim=1)
 
         if self.targeted:
-            result = preds == target
+            result = all(preds.cpu().numpy()==target.cpu().numpy()) #preds == target
         else:
-            result = preds != target
+            result = all(preds.cpu().numpy()!=target.cpu().numpy()) #preds != target
 
-        return result
+        return torch.tensor([result])
 
     @staticmethod
     def _interpolate(current_sample, original_sample, alpha, norm):
