@@ -145,7 +145,7 @@ class RandomNoiseAttack(PredictionScoreAttack):
             x, y = x.to(self.device), y.to(self.device)
             X_noisy = x.unsqueeze(1).repeat(1, self.N, 1, 1, 1)
             X_noisy = X_noisy + torch.randn_like(X_noisy) * sigma
-            X_noisy = X_noisy.view(-1, X_noisy.size()[-3], X_noisy.size()[-2], X_noisy.size()[-1])
+            X_noisy = X_noisy.view(-1, X_noisy.size()[-3], X_noisy.size()[-2], X_noisy.size()[-1]) # dim?
             n_batches = math.ceil(len(X_noisy) / self.batch_size)
             predictions = torch.tensor([], device=self.device)
             for i in tqdm(range(n_batches), desc='Distance estimation', leave=False, disable=not self.log_training):
