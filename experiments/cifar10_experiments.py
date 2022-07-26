@@ -85,6 +85,7 @@ parser.add_argument(
 )
 parser.add_argument('--temp_value', default=None, type=float, help='Set a temperature value by hand')
 parser.add_argument('--wandb', action='store_true', default=True)
+parser.add_argument('--boundary', action='store_true', default=False)
 
 args = parser.parse_args()
 if args.label_smoothing:
@@ -139,6 +140,7 @@ USE_LLLA = args.llla
 USE_TEMP = args.temp_scaling
 TEMP_VALUE = args.temp_value
 WANDB = args.wandb
+BOUNDARY = args.boundary
 
 # set the seed and set pytorch to behave deterministically
 torch.manual_seed(SEED)
@@ -372,7 +374,7 @@ if __name__ == '__main__':
         print(f'Overconfidence Error Temp. Calibrated Target Model={overconfidence_error(target_model, target_test, num_bins=15, apply_softmax=False):.4f}')
         print(f'Overconfidence Error Temp. Calibrated Shadow Model={overconfidence_error(shadow_model, shadow_test, num_bins=15, apply_softmax=False):.4f}')
 
-    if args.wandb:
+    if WANDB:
         wandb.log({'target model train acc': evaluate(target_model, target_train), 'target model test acc': evaluate(target_model, target_test)})
         wandb.log({'shadow model train acc': evaluate(shadow_model, shadow_train), 'shadow model test acc': evaluate(shadow_model, shadow_test)})
         wandb.log({'ECE target': expected_calibration_error(target_model, target_test, num_bins=15, apply_softmax=True), 'ECE shadow': expected_calibration_error(shadow_model, shadow_test, num_bins=15, apply_softmax=True)})
@@ -380,13 +382,12 @@ if __name__ == '__main__':
     
     # create the attacks
     attacks = [
-        #ThresholdAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        #SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
-        #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
+    if BOUNDARY:
+        attacks.append(DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)))
+
     # learn the attack parameters for each attack
     for attack in attacks:
         attack.learn_attack_parameters(shadow_model, member_shadow, non_member_shadow)
