@@ -72,6 +72,7 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 for x, y in loader:
                     x, y = x.to(self.device), y.to(self.device)
                     x_adv = hsj.generate(x=x, y=y) #[128,3,32,32]
+                    print(x_adv.shape[0])
                     output = shadow_model(x) 
                     if self.apply_softmax:
                         output = output.softmax(dim=1)
@@ -79,6 +80,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                     x, y_pred, y = x.cpu().numpy(), y_pred.cpu().numpy(), y.cpu().numpy()
                     distance = np.linalg.norm((x_adv - x).reshape((x.shape[0], -1)), ord=2, axis=1) # [batchsize]
                     distance[y_pred != y] = 0
+                    print("distance shape:")
+                    print(distance.shape)
                     if i == 0:
                         distance_train.append(np.amax(distance))
                     else:
@@ -130,6 +133,7 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
             for x, y in loader:
                 x, y = x.to(self.device), y.to(self.device) # [128,3,32,32], [128]
                 x_adv = hsj.generate(x=x, y=y) # [128,3,32,32]
+                print(x_adv.shape[0])
                 output = target_model(x)
                 if self.apply_softmax:
                     output = output.softmax(dim=1)
@@ -137,6 +141,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 x, y, y_pred = x.cpu().numpy(), y.cpu().numpy(), y_pred.cpu().numpy()
                 distance = np.linalg.norm((x_adv - x).reshape((x.shape[0], -1)), ord=2, axis=1)
                 distance[y_pred != y] = 0
+                print("distance shape:")
+                print(distance.shape)
                 if distance.shape[0] == self.batch_size:
                     dist.append(np.where(distance > self.tau, 1, 0))
                 else:

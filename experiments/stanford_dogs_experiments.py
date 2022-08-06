@@ -335,6 +335,12 @@ if __name__ == '__main__':
         print(f'Overconfidence Error Temp. Calibrated Target Model={overconfidence_error(target_model, dataset_test, num_bins=15, apply_softmax=False):.4f}')
         print(f'Overconfidence Error Temp. Calibrated Shadow Model={overconfidence_error(shadow_model, dataset_test, num_bins=15, apply_softmax=False):.4f}')
 
+    if WANDB:
+        wandb.log({'target model train acc': evaluate(target_model, target_train), 'target model test acc': evaluate(target_model, dataset_test)})
+        wandb.log({'shadow model train acc': evaluate(shadow_model, shadow_train), 'shadow model test acc': evaluate(shadow_model, dataset_test)})
+        wandb.log({'ECE target': expected_calibration_error(target_model, dataset_test, num_bins=15, apply_softmax=True), 'ECE shadow': expected_calibration_error(shadow_model, dataset_test, num_bins=15, apply_softmax=True)})
+        wandb.log({'Overconfidence Error Target': overconfidence_error(target_model, dataset_test, num_bins=15, apply_softmax=True), 'Overconfidence Error Shadow': overconfidence_error(shadow_model, dataset_test, num_bins=15, apply_softmax=True)})
+    
     # create the attacks
     attacks = [
         #ThresholdAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
@@ -342,7 +348,7 @@ if __name__ == '__main__':
         #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         DecisionBoundaryAttack(input_shape=(3,224,224), apply_softmax=not (USE_LLLA or USE_TEMP)),
-        RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
+        RandomNoiseAttack(N=250,batch_size=32,apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
     # learn the attack parameters for each attack
     for attack in attacks:
