@@ -62,14 +62,15 @@ def print_attack_results(attack_name: str, attack_results: AttackResult, dataset
     """
     print(
         f'{attack_name}: \n ' + f'\tRecall: {attack_results.recall:.4f} \t Precision: {attack_results.precision:.4f} ' +
-        f'\t AUROC: {attack_results.auroc:.4f} \t AUPR: {attack_results.aupr:.4f} \t FPR@95%TPR: {attack_results.fpr_at_tpr95:.4f}' +
+        f'\t AUROC: {attack_results.auroc:.4f} \t AUPR: {attack_results.aupr:.4f} \t FPR@95%TPR: {attack_results.fpr_at_tpr95:.4f} ' +
         f'\t FPR: {attack_results.fpr:.4f} \t TPR: {attack_results.tpr:.4f} ' +
         f'\t FNR: {attack_results.fnr:.4f} \t TNR: {attack_results.tnr:.4f} ' +
-        f'\t TP MMPS: {attack_results.tp_mmps:.4f} \t FP MMPS: {attack_results.fp_mmps:.4f}'
-        f'\t FN MMPS: {attack_results.fn_mmps:.4f} \t TN MMPS: {attack_results.tn_mmps:.4f}'
+        f'\t TP MMPS: {attack_results.tp_mmps:.4f} \t FP MMPS: {attack_results.fp_mmps:.4f} ' +
+        f'\t FN MMPS: {attack_results.fn_mmps:.4f} \t TN MMPS: {attack_results.tn_mmps:.4f} ' +
+        f'\t ACC: {attack_results.attack_acc:.4f}'
     )
     if arg_wandb:
-        wandb.log({"precision_"+attack_name+"_"+dataset : attack_results.precision, "recall_"+attack_name+"_"+dataset : attack_results.recall, "auroc_"+attack_name+"_"+dataset : attack_results.auroc, "aupr_"+attack_name+"_"+dataset : attack_results.aupr, "fpr_at_tpr95_"+attack_name+"_"+dataset: attack_results.fpr_at_tpr95, "tpr_"+attack_name+"_"+dataset: attack_results.tpr, "fpr_"+attack_name+"_"+dataset : attack_results.fpr, "tnr_"+attack_name+"_"+dataset : attack_results.tnr, "fnr_"+attack_name+"_"+dataset : attack_results.fnr, "tp_mmps_"+attack_name+"_"+dataset : attack_results.tp_mmps, "fp_mmps_"+attack_name+"_"+dataset : attack_results.fp_mmps, "tn_mmps_"+attack_name+"_"+dataset : attack_results.tn_mmps, "fn_mmps_"+attack_name+"_"+dataset : attack_results.fn_mmps})
+        wandb.log({"accuracy_"+attack_name+"_"+dataset : attack_results.attack_acc,"precision_"+attack_name+"_"+dataset : attack_results.precision, "recall_"+attack_name+"_"+dataset : attack_results.recall, "auroc_"+attack_name+"_"+dataset : attack_results.auroc, "aupr_"+attack_name+"_"+dataset : attack_results.aupr, "fpr_at_tpr95_"+attack_name+"_"+dataset: attack_results.fpr_at_tpr95, "tpr_"+attack_name+"_"+dataset: attack_results.tpr, "fpr_"+attack_name+"_"+dataset : attack_results.fpr, "tnr_"+attack_name+"_"+dataset : attack_results.tnr, "fnr_"+attack_name+"_"+dataset : attack_results.fnr, "tp_mmps_"+attack_name+"_"+dataset : attack_results.tp_mmps, "fp_mmps_"+attack_name+"_"+dataset : attack_results.fp_mmps, "tn_mmps_"+attack_name+"_"+dataset : attack_results.tn_mmps, "fn_mmps_"+attack_name+"_"+dataset : attack_results.fn_mmps})
 
 
 def attack_model(model: nn.Module, attack_list: List[PredictionScoreAttack], member: dataset, non_member: dataset, dataset: str, arg_wandb ):
