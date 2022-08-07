@@ -72,7 +72,7 @@ class RandomNoiseAttack(PredictionScoreAttack):
         # estimate distance of decision boundary
         member_distances = np.empty(len(member_dataset))
         non_member_distances = np.empty(len(non_member_dataset))
-        rtpt = RTPT(name_initials='BB', experiment_name='RandomNoise_estimate_tau', max_iterations=len(member_dataset)+len(non_member_dataset))
+        rtpt = RTPT(name_initials='BB', experiment_name='Noise_tau', max_iterations=len(member_dataset)+len(non_member_dataset))
         rtpt.start()
         for i, (x, y) in enumerate(tqdm(membership_loader, desc='Estimating distance for membership samples')):
             distances = self.estimate_distance(x, y, shadow_model, sigma)
@@ -148,7 +148,7 @@ class RandomNoiseAttack(PredictionScoreAttack):
             X_noisy = X_noisy.view(-1, X_noisy.size()[-3], X_noisy.size()[-2], X_noisy.size()[-1]) # dim?
             n_batches = math.ceil(len(X_noisy) / self.batch_size)
             predictions = torch.tensor([], device=self.device)
-            for i in tqdm(range(n_batches), desc='Distance estimation', leave=False, disable=not self.log_training):
+            for i in tqdm(range(n_batches), desc='Noise_distance', leave=False, disable=not self.log_training):
                 input = X_noisy[i * self.batch_size:(i + 1) * self.batch_size]
                 output = shadow_model.forward(input)
                 y_pred = torch.argmax(output, dim=1)
@@ -170,7 +170,7 @@ class RandomNoiseAttack(PredictionScoreAttack):
         target_model.eval()
         dataloader = DataLoader(dataset, shuffle=True, batch_size=self.batch_size, num_workers=8)
         predictions = np.zeros(len(dataset), dtype=bool)
-        rtpt = RTPT(name_initials='BB', experiment_name='DecisionBoundary_predict', max_iterations=len(dataset))
+        rtpt = RTPT(name_initials='BB', experiment_name='Noise_predict', max_iterations=len(dataset))
         rtpt.start()
         with torch.no_grad():
             for i, (x, y) in enumerate(dataloader):
