@@ -386,7 +386,7 @@ if __name__ == '__main__':
         RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
     if BOUNDARY:
-        attacks.append(DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP)))
+        attacks = [DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP))]
 
     # learn the attack parameters for each attack
     for attack in attacks:
