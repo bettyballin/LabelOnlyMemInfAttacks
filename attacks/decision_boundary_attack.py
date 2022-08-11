@@ -68,11 +68,11 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         with torch.no_grad():
             distance_train = []
             distance_test = []
-            for i, dataset in enumerate([non_member_dataset, member_dataset]):
+            for i, dataset in enumerate([member_dataset, non_member_dataset]):
                 loader = DataLoader(dataset, batch_size=self.batch_size, num_workers=8)
                 for x, y in loader:
                     x, y = x.to(self.device), y.to(self.device)
-                    x_adv = hsj.generate(x=x, y=y) #[128,3,32,32]
+                    x_adv = hsj.generate(x=x, y=y) #[128,3,32,32] smallest adv sample where label is flipped
                     output = shadow_model(x) 
                     if self.apply_softmax:
                         output = output.softmax(dim=1)
@@ -128,8 +128,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 else:
                     print("not fully generated")
                 rtpt.step()
-        self.is_member = np.array(dist).reshape(-1)
-        return self.is_member == 1
+        self.is_member[dataset] = np.array(dist).reshape(-1)
+        return self.is_member[dataset] == 1
 
     def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
         """
@@ -143,4 +143,4 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
             * *verbose*: Show progress bars.
         :return: An array holding the inferred membership status, 1 indicates a member and 0 indicates non-member.
         """      
-        return torch.from_numpy(self.is_member)
+        return torch.from_numpy(self.is_member[dataset])
