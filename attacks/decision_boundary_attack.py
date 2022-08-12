@@ -25,6 +25,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         max_eval: int = 500,
         init_eval: int = 10,
         init_size: int = 100,
+        is_member_members = np.array([]),
+        is_member_nonmembers = np.array([])
     ):
         """
         Create a `LabelOnlyDecisionBoundary` instance for Label-Only Inference Attack based on Decision Boundary.
@@ -44,7 +46,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
         self.init_size = init_size
         self.apply_softmax = apply_softmax
         self.log_training = log_training
-        self.is_member = np.array([])
+        self.is_member_members = is_member_members
+        self.is_member_nonmembers = is_member_nonmembers
 
     def learn_attack_parameters(
         self, shadow_model: nn.Module, member_dataset: torch.utils.data.Dataset, non_member_dataset: Dataset, *kwargs
@@ -106,7 +109,16 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
 
         self.tau = distance_threshold_tau
 
-    def predict_membership(self, target_model: nn.Module, dataset: Dataset):
+    def reset(self):
+        self.is_member_members = np.array([])
+        self.is_member_nonmembers = np.array([])
+
+    def predict_membership(self, target_model: nn.Module, dataset: Dataset, member):
+        if member and self.is_member_members.shape[0] != 0:
+            return self.is_member_members
+        elif not member and self.is_member_nonmembers.shape[0] != 0:
+            return self.is_member_nonmembers
+
         hsj = HopSkipJump(classifier=target_model, apply_softmax=self.apply_softmax, input_shape=self.input_shape, device=self.device)
         dist = []
         rtpt = RTPT(name_initials='BB', experiment_name='DecisionBoundary_prediction', max_iterations=len(dataset))
@@ -128,10 +140,14 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 else:
                     print("not fully generated")
                 rtpt.step()
-        self.is_member[dataset] = np.array(dist).reshape(-1)
-        return self.is_member[dataset] == 1
+        if member:
+            self.is_member_members = np.array(dist).reshape(-1)
+        else:
+            self.is_member_nonmembers = np.array(dist).reshape(-1)
 
-    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
+        return np.array(dist).reshape(-1) == 1
+
+    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset, member) -> torch.Tensor:
         """
         Infer membership of input `x` in estimator's training data.
         :Keyword Arguments for HopSkipJump:
@@ -143,4 +159,6 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
             * *verbose*: Show progress bars.
         :return: An array holding the inferred membership status, 1 indicates a member and 0 indicates non-member.
         """      
-        return torch.from_numpy(self.is_member[dataset])
+        if member:
+            return torch.from_numpy(self.is_member_members)
+        return torch.from_numpy(self.is_member_nonmembers)

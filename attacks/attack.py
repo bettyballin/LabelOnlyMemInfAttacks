@@ -71,7 +71,7 @@ class PredictionScoreAttack:
         raise NotImplementedError('This function has to be implemented in a subclass')
 
     @abstractmethod
-    def predict_membership(self, target_model: nn.Module, dataset: Dataset) -> np.ndarray:
+    def predict_membership(self, target_model: nn.Module, dataset: Dataset, member: bool) -> np.ndarray:
         """
         Predicts whether the samples in the given dataset are a member of the given model.
         :param target_model: The given target model to predict the membership.
@@ -79,6 +79,10 @@ class PredictionScoreAttack:
         :returns: A numpy array containing bool values for each sample indicating whether the samples was is a member or not.
         """
         raise NotImplementedError('This function has to be implemented in a subclass')
+    
+    @abstractmethod
+    def reset(self):
+        pass
 
     def evaluate(self, target_model: nn.Module, member_dataset: Dataset, non_member_dataset: Dataset) -> AttackResult:
         """
@@ -89,8 +93,8 @@ class PredictionScoreAttack:
         :param non_member_dataset: The non-member dataset that was **not** used to train the target model.
         :param kwargs: Additional optional parameters for the `predict_membership`-method.
         """
-        member_predictions = self.predict_membership(target_model, member_dataset)
-        non_member_predictions = self.predict_membership(target_model, non_member_dataset)
+        member_predictions = self.predict_membership(target_model, member_dataset, True)
+        non_member_predictions = self.predict_membership(target_model, non_member_dataset, False)
         tp = member_predictions.sum()
         tn = len(non_member_dataset) - non_member_predictions.sum()
         fp = non_member_predictions.sum()
@@ -103,8 +107,8 @@ class PredictionScoreAttack:
         rec = tp / (tp + fn)
         acc = (tp + tn) / (tp + tn + fp + fn)
 
-        member_pred_scores = self.get_attack_model_prediction_scores(target_model, dataset=member_dataset)
-        non_member_pred_scores = self.get_attack_model_prediction_scores(target_model, dataset=non_member_dataset)
+        member_pred_scores = self.get_attack_model_prediction_scores(target_model, dataset=member_dataset, member=True)
+        non_member_pred_scores = self.get_attack_model_prediction_scores(target_model, dataset=non_member_dataset, member=False)
         concat_preds = torch.cat((non_member_pred_scores, member_pred_scores))
         concat_targets = torch.tensor([0 for _ in non_member_pred_scores] + [1 for _ in member_pred_scores])
         
@@ -132,24 +136,26 @@ class PredictionScoreAttack:
 
         # get the mmps values
         tp_pred_scores = self.get_pred_score_classified_as_members(
-            target_model, member_dataset, apply_softmax=self.apply_softmax
+            target_model, member_dataset, apply_softmax=self.apply_softmax, member=True
         )
         tp_mmps = tp_pred_scores.max(dim=1)[0].mean() if len(tp_pred_scores) > 0 else 0
 
         fp_pred_scores = self.get_pred_score_classified_as_members(
-            target_model, non_member_dataset, apply_softmax=self.apply_softmax
+            target_model, non_member_dataset, apply_softmax=self.apply_softmax, member=False
         )
         fp_mmps = fp_pred_scores.max(dim=1)[0].mean() if len(fp_pred_scores) > 0 else 0
 
         fn_pred_scores = self.get_pred_score_classified_as_non_members(
-            target_model, member_dataset, apply_softmax=self.apply_softmax
+            target_model, member_dataset, apply_softmax=self.apply_softmax, member=True
         )
         fn_mmps = fn_pred_scores.max(dim=1)[0].mean() if len(fn_pred_scores) > 0 else 0
 
         tn_pred_scores = self.get_pred_score_classified_as_non_members(
-            target_model, non_member_dataset, apply_softmax=self.apply_softmax
+            target_model, non_member_dataset, apply_softmax=self.apply_softmax, member=False
         )
         tn_mmps = tn_pred_scores.max(dim=1)[0].mean() if len(tn_pred_scores) > 0 else 0
+        
+        self.reset()
 
         result = AttackResult(
             attack_acc=acc,
@@ -169,11 +175,11 @@ class PredictionScoreAttack:
         )
         return result
 
-    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
+    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset, member: bool) -> torch.Tensor:
         raise NotImplementedError('This function has to be implemented in a subclass')
 
-    def get_pred_score_classified_as_members(self, target_model: nn.Module, dataset: Dataset, apply_softmax: bool):
-        membership_predictions = self.predict_membership(target_model, dataset)
+    def get_pred_score_classified_as_members(self, target_model: nn.Module, dataset: Dataset, apply_softmax: bool, member: bool):
+        membership_predictions = self.predict_membership(target_model, dataset, member)
 
         predicted_member_indices = torch.nonzero(torch.tensor(membership_predictions).squeeze()).squeeze()
         if predicted_member_indices.ndim == 0:
@@ -189,8 +195,8 @@ class PredictionScoreAttack:
 
         return get_model_prediction_scores(target_model, apply_softmax, torch.utils.data.TensorDataset(samples, labels))
 
-    def get_pred_score_classified_as_non_members(self, target_model: nn.Module, dataset: Dataset, apply_softmax: bool):
-        membership_predictions = self.predict_membership(target_model, dataset)
+    def get_pred_score_classified_as_non_members(self, target_model: nn.Module, dataset: Dataset, apply_softmax: bool, member: bool):
+        membership_predictions = self.predict_membership(target_model, dataset,member)
 
         predicted_member_indices = torch.nonzero(torch.logical_not(torch.tensor(membership_predictions)).squeeze()
                                                  ).squeeze()

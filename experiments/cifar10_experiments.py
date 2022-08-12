@@ -86,6 +86,7 @@ parser.add_argument(
 parser.add_argument('--temp_value', default=None, type=float, help='Set a temperature value by hand')
 parser.add_argument('--wandb', action='store_true', default=True)
 parser.add_argument('--boundary', action='store_true', default=False)
+parser.add_argument('--boundary_batch_size', type=int, default=250)
 
 args = parser.parse_args()
 if args.label_smoothing:
@@ -141,6 +142,7 @@ USE_TEMP = args.temp_scaling
 TEMP_VALUE = args.temp_value
 WANDB = args.wandb
 BOUNDARY = args.boundary
+BOUNDARY_BATCH_SIZE = args.boundary_batch_size
 
 # set the seed and set pytorch to behave deterministically
 torch.manual_seed(SEED)
@@ -386,7 +388,7 @@ if __name__ == '__main__':
         RandomNoiseAttack(apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
     if BOUNDARY:
-        attacks = [DecisionBoundaryAttack(apply_softmax=not (USE_LLLA or USE_TEMP))]
+        attacks = [DecisionBoundaryAttack(batch_size=BOUNDARY_BATCH_SIZE, apply_softmax=not (USE_LLLA or USE_TEMP))]
 
     # learn the attack parameters for each attack
     for attack in attacks:
