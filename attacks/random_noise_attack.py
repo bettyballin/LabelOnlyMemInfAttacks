@@ -158,7 +158,7 @@ class RandomNoiseAttack(PredictionScoreAttack):
             correct_predictions = torch.sum(correct_predictions, dim=1)
         return (correct_predictions / self.N).detach().cpu().numpy()
 
-    def predict_membership(self, target_model: nn.Module, dataset: Dataset) -> np.ndarray:
+    def predict_membership(self, target_model: nn.Module, dataset: Dataset,member) -> np.ndarray:
         """
         Predicts for samples X if they were part of the training set of the target model.
         Returns True if membership is predicted, False else.
@@ -166,7 +166,7 @@ class RandomNoiseAttack(PredictionScoreAttack):
         predictions = self.get_attack_model_prediction_scores(target_model, dataset)
         return predictions.numpy() == 1
 
-    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
+    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset,member) -> torch.Tensor:
         target_model.eval()
         dataloader = DataLoader(dataset, shuffle=True, batch_size=self.batch_size, num_workers=8)
         predictions = np.zeros(len(dataset), dtype=bool)

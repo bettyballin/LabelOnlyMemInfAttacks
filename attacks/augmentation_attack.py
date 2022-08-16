@@ -328,12 +328,12 @@ class AugmentationAttack(PredictionScoreAttack):
             print(f'Using best model with training accuracy of {best_acc:.4f}')
         self.attack_model.load_state_dict(best_model_state_dict)
 
-    def predict_membership(self, target_model: nn.Module, dataset: Dataset) -> np.ndarray:
+    def predict_membership(self, target_model: nn.Module, dataset: Dataset,member) -> np.ndarray:
         predictions = self.get_attack_model_prediction_scores(target_model, dataset)
 
         return (predictions >= 0.5).numpy()
 
-    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset) -> torch.Tensor:
+    def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset,member) -> torch.Tensor:
         self.attack_model.eval()
 
         prediction_vectors = self._get_prediction_vectors(target_model, dataset) # [2500,14]
