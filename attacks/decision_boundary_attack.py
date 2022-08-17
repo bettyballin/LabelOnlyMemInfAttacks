@@ -75,18 +75,18 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 loader = DataLoader(dataset, batch_size=self.batch_size, num_workers=8)
                 for x, y in loader:
                     x, y = x.to(self.device), y.to(self.device)
-                    x_adv = hsj.generate(x=x, y=y) #[128,3,32,32] smallest adv sample where label is flipped
-                    output = shadow_model(x) 
+                    x_adv = hsj.generate(x=x, y=y)  # [batchsize,3,32,32] generate smallest adv sample where label is flipped
+                    output = shadow_model(x)        # get predicted labels of input
                     if self.apply_softmax:
                         output = output.softmax(dim=1)
                     y_pred = torch.argmax(output, dim=1)
-                    x, y_pred, y = x.cpu().numpy(), y_pred.cpu().numpy(), y.cpu().numpy()
-                    distance = np.linalg.norm((x_adv - x).reshape((x.shape[0], -1)), ord=2, axis=1) # [batchsize]
-                    distance[y_pred != y] = 0
-                    if i == 0:
-                        distance_train.append(np.amax(distance))
-                    else:
-                        distance_test.append(np.amax(distance))
+                    x, y_pred, y = x.cpu().numpy(), y_pred.cpu().numpy(), y.cpu().numpy()  
+                    distance = np.linalg.norm((x_adv - x).reshape((x.shape[0], -1)), ord=2, axis=1) # [batchsize] compute distance between smallest adv samples and input
+                    distance[y_pred != y] = 0       # distance zero where no perturbation is needed
+                    if i == 0:  # member_dataset
+                        distance_train += [d for d in distance]
+                    else:       # non_member_dataset
+                        distance_test += [d for d in distance]
                     rtpt.step()
             tau_increment = np.amax([np.amax(distance_train), np.amax(distance_test)]) / 100
             acc_max = 0.0
@@ -94,8 +94,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
 
         for i_tau in range(1, 100):
 
-            is_member_train = np.where(distance_train > i_tau * tau_increment, 1, 0)
-            is_member_test = np.where(distance_test > i_tau * tau_increment, 1, 0)
+            is_member_train = np.where(np.array(distance_train) > i_tau * tau_increment, 1, 0)
+            is_member_test = np.where(np.array(distance_test) > i_tau * tau_increment, 1, 0)
 
             acc = (np.sum(is_member_train) + (is_member_test.shape[0] - np.sum(is_member_test))
                    ) / (is_member_train.shape[0] + is_member_test.shape[0])
@@ -135,10 +135,8 @@ class DecisionBoundaryAttack(PredictionScoreAttack):
                 x, y, y_pred = x.cpu().numpy(), y.cpu().numpy(), y_pred.cpu().numpy()
                 distance = np.linalg.norm((x_adv - x).reshape((x.shape[0], -1)), ord=2, axis=1)
                 distance[y_pred != y] = 0
-                if distance.shape[0] == self.batch_size:
-                    dist.append(np.where(distance > self.tau, 1, 0))
-                else:
-                    print("not fully generated")
+                is_member = np.where(distance > self.tau, 1, 0)
+                dist += [i for i in is_member]
                 rtpt.step()
         if member:
             self.is_member_members = np.array(dist).reshape(-1)
