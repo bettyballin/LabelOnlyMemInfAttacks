@@ -329,7 +329,7 @@ class AugmentationAttack(PredictionScoreAttack):
         self.attack_model.load_state_dict(best_model_state_dict)
 
     def predict_membership(self, target_model: nn.Module, dataset: Dataset,member) -> np.ndarray:
-        predictions = self.get_attack_model_prediction_scores(target_model, dataset)
+        predictions = self.get_attack_model_prediction_scores(target_model, dataset, member)
 
         return (predictions >= 0.5).numpy()
 

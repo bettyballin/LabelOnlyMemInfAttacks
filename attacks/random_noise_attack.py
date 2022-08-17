@@ -163,7 +163,7 @@ class RandomNoiseAttack(PredictionScoreAttack):
         Predicts for samples X if they were part of the training set of the target model.
         Returns True if membership is predicted, False else.
         """
-        predictions = self.get_attack_model_prediction_scores(target_model, dataset)
+        predictions = self.get_attack_model_prediction_scores(target_model, dataset, member)
         return predictions.numpy() == 1
 
     def get_attack_model_prediction_scores(self, target_model: nn.Module, dataset: Dataset,member) -> torch.Tensor:
