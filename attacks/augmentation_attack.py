@@ -219,6 +219,7 @@ class AugmentationAttack(PredictionScoreAttack):
         self.attack_model = nn.Sequential(nn.Linear(self.num_augmented_images, 64), nn.ReLU(), nn.Linear(64, 1))
 
     def get_out_features(self, model):
+        out = 120
         try:
             out = model.linear.out_features
         except Exception as e:
@@ -228,7 +229,18 @@ class AugmentationAttack(PredictionScoreAttack):
                 try:
                     out = model.model.linear.out_features #llla
                 except Exception as e:
-                    print(model)
+                    try:
+                        out = model.fc.linear.out_features # resnet50
+                    except Exception as e:   
+                        try:
+                            out = model.fc.linear.out_features 
+                        except Exception as e:    
+                            print(model)
+                            try:
+                                print(model.fc)
+                                print(model.fc.linear)
+                            except Exception as e:   
+                                pass
         return out
         
     def learn_attack_parameters(self, shadow_model: nn.Module, member_dataset: Dataset, non_member_dataset: Dataset):

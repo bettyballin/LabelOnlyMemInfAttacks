@@ -1,7 +1,17 @@
+from selectors import EpollSelector
 from tqdm import tqdm
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
+from datetime import datetime as dt
 
+def showImage(images):
+    plt.ion() 
+    fig = plt.figure(figsize=(8, 8))
+    for i,img in enumerate(images):
+        fig.add_subplot(images.shape[0], 1, i+1)
+        plt.imshow(img.T)
+    fig.savefig('img ' + dt.now().strftime('%d %H:%M:%S')+'.pdf')
 
 class HopSkipJump():
     """
@@ -382,7 +392,7 @@ class HopSkipJump():
             epsilon = 2.0 * dist / np.sqrt(self.curr_iter + 1)
             success = False
 
-            while not success:
+            while not success and delta > 1e-15:
                 epsilon /= 2.0
                 potential_sample = current_sample + epsilon * update
                 success = self._adversarial_satisfactory(
