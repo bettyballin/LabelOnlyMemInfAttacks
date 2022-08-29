@@ -392,7 +392,7 @@ class HopSkipJump():
             epsilon = 2.0 * dist / np.sqrt(self.curr_iter + 1)
             success = False
 
-            while not success and delta > 1e-15:
+            while not success and delta > 1e-10:
                 epsilon /= 2.0
                 potential_sample = current_sample + epsilon * update
                 success = self._adversarial_satisfactory(

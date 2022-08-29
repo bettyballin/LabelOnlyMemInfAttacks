@@ -346,9 +346,9 @@ if __name__ == '__main__':
         #ThresholdAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         #SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
         #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        DecisionBoundaryAttack(input_shape=(3,224,224), apply_softmax=not (USE_LLLA or USE_TEMP)),
-        RandomNoiseAttack(N=250,batch_size=32,apply_softmax=not (USE_LLLA or USE_TEMP))
+        #AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
+        #DecisionBoundaryAttack(input_shape=(3,224,224), apply_softmax=not (USE_LLLA or USE_TEMP)),
+        RandomNoiseAttack(N=1500,batch_size=64,apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
     # learn the attack parameters for each attack
     for attack in attacks:
