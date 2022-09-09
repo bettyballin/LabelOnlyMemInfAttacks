@@ -347,8 +347,8 @@ if __name__ == '__main__':
         #SalemAttack(apply_softmax=not (USE_LLLA or USE_TEMP), k=SALEM_K),
         #EntropyAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
         #AugmentationAttack(apply_softmax=not (USE_LLLA or USE_TEMP)),
-        #DecisionBoundaryAttack(input_shape=(3,224,224), apply_softmax=not (USE_LLLA or USE_TEMP)),
-        RandomNoiseAttack(N=1500,batch_size=64,apply_softmax=not (USE_LLLA or USE_TEMP))
+        DecisionBoundaryAttack(input_shape=(3,224,224), apply_softmax=not (USE_LLLA or USE_TEMP)),
+        #RandomNoiseAttack(N=100,batch_size=25,apply_softmax=not (USE_LLLA or USE_TEMP))
     ]
     # learn the attack parameters for each attack
     for attack in attacks:
@@ -420,7 +420,7 @@ if __name__ == '__main__':
         csv_writer.writerow(column_labels)
 
         # attack the models using the different non-member sets
-        print('Attack Model using Original Non-Members:')
+        '''print('Attack Model using Original Non-Members:')
         results = attack_model(target_model, attacks, member_target, non_member_target, 'Original', WANDB)
         write_results_to_csv(csv_writer, results, row_label='Original')
 
@@ -447,7 +447,7 @@ if __name__ == '__main__':
         print('\n')
         print('Attack Model using AFHQ Non-Dogs Non-Members:')
         results = attack_model(target_model, attacks, member_target, afhq_rest, 'AFHQ-NonDogs', WANDB)
-        write_results_to_csv(csv_writer, results, row_label='AFHQ-NonDogs')
+        write_results_to_csv(csv_writer, results, row_label='AFHQ-NonDogs')'''
 
         print('\n')
         print('Attack Model using Permuted Non-Members:')
