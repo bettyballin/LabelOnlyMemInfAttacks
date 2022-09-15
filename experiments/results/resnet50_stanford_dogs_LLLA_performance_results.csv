@@ -1,7 +1,0 @@
-,DecisionBoundaryAttack Precision,DecisionBoundaryAttack Recall,DecisionBoundaryAttack FPR
-Train Acc. Target,0.9847,,,,,,,,
-Test Acc. Target,0.5935,,,,,,,,
-ECE Target,0.0495,,,,,,,,
-Train Acc. Shadow,0.9698,,,,,,,,
-Test Acc. Shadow,0.5717,,,,,,,,
-ECE Target,0.0499,,,,,,,,
