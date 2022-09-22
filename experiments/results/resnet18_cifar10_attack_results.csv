@@ -1,0 +1,2 @@
+,RandomNoiseAttack Precision,RandomNoiseAttack Recall,RandomNoiseAttack AUROC,RandomNoiseAttack AUPR,RandomNoiseAttack FPR@95%TPR,RandomNoiseAttack FPR,RandomNoiseAttack TP_MMPS,RandomNoiseAttack FP_MMPS,RandomNoiseAttack FN_MMPS,RandomNoiseAttack TN_MMPS
+Scaled,0.2615,0.3400,0.1800,0.4550,1.0000,0.9600,1.0000,1.0000,0.9999,1.0000
